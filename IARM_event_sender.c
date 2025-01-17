@@ -57,7 +57,8 @@ static struct eventList{
     {"FirmwareStateEvent",IARM_BUS_SYSMGR_SYSSTATE_FIRMWARE_UPDATE_STATE},
     {"IpmodeEvent",IARM_BUS_SYSMGR_SYSSTATE_IP_MODE},
     {"usbdetected",IARM_BUS_SYSMGR_SYSSTATE_USB_DETECTED},
-    {"LogUploadEvent",IARM_BUS_SYSMGR_SYSSTATE_LOG_UPLOAD}
+    {"LogUploadEvent",IARM_BUS_SYSMGR_SYSSTATE_LOG_UPLOAD},
+    {"RedStateEvent",IARM_BUS_SYSMGR_SYSSTATE_RED_RECOV_UPDATE_STATE}
 };
 
 #define EVENT_INTRUSION "IntrusionEvent"
