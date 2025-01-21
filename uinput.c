@@ -89,7 +89,7 @@ static void udispatcher_internal(int code, int value)
     struct input_event ev;
 
     printf("%d:%s: code=%d , value=%d\n", __LINE__, __func__, code, value);
-    memset(&ev, 0, sizeof(ev));
+    memset(&ev, 0, 10*sizeof(ev));
     gettimeofday(&ev.time, NULL);
     ev.type = EV_KEY;
     ev.code = code;
@@ -119,7 +119,7 @@ static void udispatcher (int keyCode, int keyType, int source)
         uint32_t value = 0;
 
         getKeyCode(keyCode, &uCode, &uModi);
-        value = getKeyValue(keyType);
+        getKeyValue(keyType);
         printf("IR-Keyboard Regular Key: IR=%x key=%x Modifier=%x val=%x [%s]\r\n", keyCode, uCode, uModi, value, type2str[value]);
         /*
          *  Send Modifier KEY_DOWN and KEY_UP event
