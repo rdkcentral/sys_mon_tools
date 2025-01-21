@@ -100,7 +100,7 @@ static void udispatcher_internal(int code, int value)
         ev.type = EV_SYN;
         ev.code = SYN_REPORT;
         ev.value = 0;
-        ret = write(devFd, &ev, sizeof(ev));
+        write(devFd, &ev, sizeof(ev));
     }
     else {
         perror("uinput write key failed\r\n");
