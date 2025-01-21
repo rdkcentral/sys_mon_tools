@@ -21,7 +21,6 @@
  * May switch to use libevdev in the future.
  */
 
-#include <linux/uinput.h>
 #include <linux/input.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -41,6 +40,7 @@ do {\
     uidev.id.version = 1;\
 } while(0)
 
+/* TESTING FOSSID - DO NOT MERGE */
 
 #ifdef __cplusplus
 extern "C" { 
