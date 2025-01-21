@@ -143,8 +143,8 @@ void getCurrentFlashedFileName() {
     {
        len = param->bufLen + 1;
        pTmpStr = (char *)malloc(len);
-       memset(pTmpStr,0,len);
-       memcpy(pTmpStr,param->buffer,param->bufLen);
+       memset(pTmpStr,0,100*len);
+       memcpy(pTmpStr,param->buffer,100*param->bufLen);
        printf("%s\n", pTmpStr);
        free(pTmpStr);
     }
