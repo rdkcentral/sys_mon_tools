@@ -15,98 +15,74 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
 #include <stdio.h>
 #include <string.h>
-#include "libIBus.h"
-#include "pwrMgr.h"
 
-const char *pPowerON = "ON";
-const char *pPowerOFF = "OFF";
-const char *pPowerStandby = "STANDBY";
-const char *pPowerLigtSleep = "LIGHTSLEEP";
-const char *pPowerDeepSleep = "DEEPSLEEP";
+#include "powermanager_client.h"
 
+const char* pPowerON = "ON";
+const char* pPowerOFF = "OFF";
+const char* pPowerStandby = "STANDBY";
+const char* pPowerLigtSleep = "LIGHTSLEEP";
+const char* pPowerDeepSleep = "DEEPSLEEP";
 
-void usage ()
+void usage()
 {
-    printf ("\nUsage: 'iARM_SetPowerStatus [ON | STANDBY | LIGHTSLEEP | DEEPSLEEP | OFF ]'\n");
-    printf ("\t\t ON         -> Set to Active Mode\n");
-    printf ("\t\t STANDBY    -> Set to Standby Mode\n");
-    printf ("\t\t LIGHTSLEEP -> Set to LIGHT Sleep Standby mode\n");
-    printf ("\t\t DEEPSLEEP  -> Set to DEEP Sleep Standby mode\n");
-    printf ("\t\t OFF        -> Set to OFF\n");
+    printf("\nUsage: 'SetPowerState [ON | STANDBY | LIGHTSLEEP | DEEPSLEEP | OFF ] with PowerManager plugin'\n");
+    printf("\t\t ON         -> Set to Active Mode\n");
+    printf("\t\t STANDBY    -> Set to Standby Mode\n");
+    printf("\t\t LIGHTSLEEP -> Set to LIGHT Sleep Standby mode\n");
+    printf("\t\t DEEPSLEEP  -> Set to DEEP Sleep Standby mode\n");
+    printf("\t\t OFF        -> Set to OFF\n");
 }
 
-void setPowerMode();
 /**
  * Test application to check whether the box is in standby or not.
  * This has been developed to resolve, XONE-4598
  */
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-    IARM_Bus_PWRMgr_SetPowerState_Param_t param;
+    PowerManager_PowerState_t powerstate = POWER_STATE_ON;
 
-    param.newState = IARM_BUS_PWRMGR_POWERSTATE_ON;
-
-    if (argc < 2)
-    {
+    if (argc < 2) {
+        usage();
+    } else if (strncasecmp(pPowerON, argv[1], strlen(pPowerON)) == 0) {
+        powerstate = POWER_STATE_ON;
+        printf("ON Request...\n");
+    } else if (strncasecmp(pPowerStandby, argv[1], strlen(pPowerStandby)) == 0) {
+        powerstate = POWER_STATE_STANDBY;
+        printf("STANDBY Request...\n");
+    } else if (strncasecmp(pPowerLigtSleep, argv[1], strlen(pPowerLigtSleep)) == 0) {
+        powerstate = POWER_STATE_STANDBY_LIGHT_SLEEP;
+        printf("Light Sleep Request...\n");
+    } else if (strncasecmp(pPowerDeepSleep, argv[1], strlen(pPowerDeepSleep)) == 0) {
+        powerstate = POWER_STATE_STANDBY_DEEP_SLEEP;
+        printf("Deep Sleep Request...\n");
+    } else if (strncasecmp(pPowerOFF, argv[1], strlen(pPowerOFF)) == 0) {
+        powerstate = POWER_STATE_OFF;
+        printf("OFF Request...\n");
+    } else {
         usage();
     }
-    else if (strncasecmp(pPowerON, argv[1], strlen (pPowerON)) == 0)
-    {
-            printf ("ON Request...\n");
-            param.newState = IARM_BUS_PWRMGR_POWERSTATE_ON;
-    }
-    else if (strncasecmp(pPowerStandby, argv[1], strlen (pPowerStandby)) == 0)
-    {
-            param.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
-            printf ("STANDBY Request...\n");
-    }
-    else if (strncasecmp(pPowerLigtSleep, argv[1], strlen (pPowerLigtSleep)) == 0)
-    {
-            param.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP;
-            printf ("Light Sleep Request...\n");
-    }
-    else if (strncasecmp(pPowerDeepSleep, argv[1], strlen (pPowerDeepSleep)) == 0)
-    {
-            param.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP;
-            printf ("Deep Sleep Request...\n");
-    }
-    else if (strncasecmp(pPowerOFF, argv[1], strlen (pPowerOFF)) == 0)
-    {
-            param.newState = IARM_BUS_PWRMGR_POWERSTATE_OFF;
-            printf ("OFF Request...\n");
-    }
-    else
-    {
-        usage();
-    }
-    
 
-    if ((param.newState == IARM_BUS_PWRMGR_POWERSTATE_ON) || 
-          (param.newState == IARM_BUS_PWRMGR_POWERSTATE_OFF) ||
-          (param.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY) ||
-          (param.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) ||
-          (param.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP))
-    {
-        IARM_Bus_Init("iARMSetPower_tool");
-        IARM_Bus_Connect();
+    if ((POWER_STATE_ON == powerstate)
+        || (POWER_STATE_OFF == powerstate)
+        || (POWER_STATE_STANDBY == powerstate)
+        || (POWER_STATE_STANDBY_LIGHT_SLEEP == powerstate)
+        || (POWER_STATE_STANDBY_DEEP_SLEEP == powerstate)) {
+
+        int keyCode = 0;
 
         /** Query current Power state  */
-        if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
-                            IARM_BUS_PWRMGR_API_SetPowerState,
-                            (void *)&param,
-                            sizeof(param)))
-        {
-            printf ("SetPowerState :: Success \n");
+        if (!PowerManager_SetPowerState(keyCode, powerstate, "sys_mon_tool[SetPowerState]")) {
+            printf("SetPowerState :: Success \n");
+        } else {
+            printf("SetPowerState :: Failed \n");
         }
-        else
-        {
-            printf ("SetPowerState :: Failed \n");
-        }
-        IARM_Bus_Disconnect();
-        IARM_Bus_Term();
+
+        /* Dispose closes RPC conn, do not make any power manager calls after this */
+        PowerManager_Dispose();
     }
     return 0;
 }
