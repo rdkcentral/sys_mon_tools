@@ -46,7 +46,7 @@ QueryPowerState_LDADD = $(DIRECT_LIBS) $(FUSION_LIBS) $(GLIB_LIBS) -lIARMBus $(D
 SetPowerState_SOURCES=IARM_BUS_SetPowerStatus.c
 SetPowerState_LDADD = -ldbus-1 -lstdc++ -lIARMBus -lpthread
 
-keySimulator_SOURCES=IARM_BUS_UIEventSimulator.c uinput.c
+keySimulator_SOURCES=key_simulator/IARM_BUS_UIEventSimulator.c key_simulator/uinput.c
 keySimulator_LDADD = $(GLIB_LIBS) -lIARMBus $(DBUS_LIBS)
 
 IARM_event_sender_SOURCES = IARM_event_sender.c
