@@ -142,7 +142,7 @@ static void udispatcher (int keyCode, int keyType, int source)
 }
 
 
-int UINPUT_init()
+int UINPUT_init(void)
 {
 #ifndef UINPUT_VERSION
 #define UINPUT_VERSION (0)

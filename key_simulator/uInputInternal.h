@@ -61,8 +61,8 @@
 **/
 
 
-#ifndef _IARM_UINPUT_INTERNAL_
-#define _IARM_UINPUT_INTERNAL_
+#ifndef _UINPUT_INTERNAL_
+#define _UINPUT_INTERNAL_
 #include "libIARM.h"
 #include <string.h>
 #include <stdbool.h>
@@ -100,7 +100,7 @@ typedef void (* uinput_dispatcher_t) (int keyCode, int keyType, int source);
  *
  * @return Error code if fails.
  */
-int UINPUT_init();
+int UINPUT_init(void);
 
 /**
  * @brief get the dispather that will listen for IARM  IR 
