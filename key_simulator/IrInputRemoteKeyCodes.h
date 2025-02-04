@@ -39,8 +39,8 @@
 * -# None
 *
 */
-#ifndef _IARM_IR_KEYCODES_H_
-#define _IARM_IR_KEYCODES_H_
+#ifndef _IR_INPUT_REMOTE_KEYCODES_H_
+#define _IR_INPUT_REMOTE_KEYCODES_H_
 
 
 #include <linux/input.h>
@@ -79,6 +79,7 @@ static IARM_keycodes kcodesMap_IARM2Linux[] =
 	IARM_TO_LINUX_KEY( KED_SELECT, KEY_ENTER)
 	IARM_TO_LINUX_KEY( KED_ENTER, KEY_ENTER)
     IARM_TO_LINUX_KEY( KED_EXIT, KEY_ESC)
+	IARM_TO_LINUX_KEY( KED_BACK, KEY_ESC)
     IARM_TO_LINUX_KEY( KED_PERIOD, KEY_F5)
 	IARM_TO_LINUX_KEY( KED_PUSH_TO_TALK, KEY_F8)
 	IARM_TO_LINUX_KEY( KED_POWER, KEY_POWER) //FP
@@ -137,7 +138,7 @@ static IARM_keycodes kcodesMap_IARM2Linux[] =
 }
 #endif
 
-#endif /* _IARM_IR_KEYCODES_H_ */
+#endif /* _IR_INPUT_REMOTE_KEYCODES_H_ */
 
 
 /* End of IARM_BUS_IRMGR_API doxygen group */

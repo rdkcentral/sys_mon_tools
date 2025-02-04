@@ -107,7 +107,7 @@ lookUpTable table[] =
 { "dmcquery", KED_DMC_QUERY },
 { "otrstart", KED_OTR_START },
 { "strstop", KED_OTR_STOP },
-{ "Period", KED_PERIOD },
+{ "period", KED_PERIOD },
 { "push2talk", KED_PUSH_TO_TALK },
 { "mute", KED_MUTE },
 { "info", KED_INFO },
