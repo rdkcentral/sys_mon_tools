@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "powermanager_client.h"
+#include "power_controller.h"
 
 const char* pPowerON = "ON";
 const char* pPowerOFF = "OFF";
@@ -73,16 +73,28 @@ int main(int argc, char* argv[])
         || (POWER_STATE_STANDBY_DEEP_SLEEP == powerstate)) {
 
         int keyCode = 0;
+        uint32_t res = 0;
+
+        PowerController_Init();
+
+        res = PowerController_SetPowerState(keyCode, powerstate, "sys_mon_tool[SetPowerState]");
 
         /** Query current Power state  */
-        if (!PowerManager_SetPowerState(keyCode, powerstate, "sys_mon_tool[SetPowerState]")) {
+        if (POWER_CONTROLLER_ERROR_NONE == res) {
             printf("SetPowerState :: Success \n");
+        } else if (POWER_CONTROLLER_ERROR_UNAVAILABLE == res) {
+            printf("SetPowerState :: Failed :: PowerManager plugin unavailable\n");
         } else {
             printf("SetPowerState :: Failed \n");
         }
 
-        /* Dispose closes RPC conn, do not make any power manager calls after this */
-        PowerManager_Dispose();
+        // TODO: without this delay there is a hang Communicator ThreadPool destroy.
+        // This is captured as part of jira `RDK-56273` & will be taken up in future sprints.
+        sleep(1);
+
+        /* Term closes RPC conn, do not make any power controller calls after this */
+        PowerController_Term();
+        printf("PowerController_Term after 1s delay\n");
     }
     return 0;
 }
