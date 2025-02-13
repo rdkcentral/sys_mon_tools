@@ -41,10 +41,10 @@ bin_PROGRAMS = keySimulator mfr_util QueryPowerState SetPowerState IARM_event_se
 mfr_util_SOURCES = mfr-utils/sys_mfr_utils.c
 mfr_util_LDADD = -lIARMBus
 
-QueryPowerState_SOURCES=IARM_Bus_CheckPowerStatus.c
+QueryPowerState_SOURCES=iarm_query_powerstate/IARM_Bus_CheckPowerStatus.c
 QueryPowerState_LDADD = $(DIRECT_LIBS) $(FUSION_LIBS) $(GLIB_LIBS) $(DBUS_LIBS) -lWPEFrameworkPowerController
 
-SetPowerState_SOURCES=IARM_BUS_SetPowerStatus.c
+SetPowerState_SOURCES=iarm_set_powerstate/IARM_BUS_SetPowerStatus.c
 SetPowerState_LDADD = -ldbus-1 -lstdc++ -lpthread -lWPEFrameworkPowerController
 
 keySimulator_SOURCES=key_simulator/IARM_BUS_UIEventSimulator.c key_simulator/uinput.c
