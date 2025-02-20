@@ -23,7 +23,8 @@
 #include <string.h>
 #include <unistd.h>
 
-/*#include "libIBus.h"*/
+// This include is still required for data types to read cached power status residing in /opt/uimgr_settings.bin
+// TODO: after IARM PwrMgr logic is moved to PowerManager plugin refactor this code and remove this header file too.
 #include "pwrMgr.h"
 
 #include "power_controller.h"
