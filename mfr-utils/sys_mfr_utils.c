@@ -23,7 +23,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include "mfr_types.h"
 
 #include "mfrTypes.h"
 #include "libIARMCore.h"
