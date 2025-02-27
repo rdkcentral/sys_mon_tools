@@ -36,7 +36,8 @@ AM_CFLAGS = \
 
 include_HEADERS = $(top_srcdir)/key_simulator/RDKIrKeyCodes.h
 
-bin_PROGRAMS = keySimulator mfr_util QueryPowerState SetPowerState IARM_event_sender
+#TODO causing build error: bin_PROGRAMS = keySimulator mfr_util QueryPowerState SetPowerState IARM_event_sender
+bin_PROGRAMS = keySimulator mfr_util IARM_event_sender
 
 mfr_util_SOURCES = mfr-utils/sys_mfr_utils.c
 mfr_util_LDADD = -lIARMBus
