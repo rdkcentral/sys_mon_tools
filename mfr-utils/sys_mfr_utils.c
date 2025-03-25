@@ -24,25 +24,25 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#if defined(YOCTO_BUILD)
-    #include "mfrTypes.h"
-    #include "libIARMCore.h"
-    #include "mfrMgr.h"
-    #include "libIBus.h"
-    #include "mfrApi.h"
-#endif
-
-#include "sys_mfr_utils.h"
-
-#define NVRAM_TEST_SIZE     128
+#include "mfrTypes.h"
+#include "libIARMCore.h"
+#include "mfrMgr.h"
+#include "libIBus.h"
+#include "mfrApi.h"
 
 #if defined(YOCTO_BUILD)
-    const char* validParams[] = {"--CurrentImageFilename", "--FlashedFilename","--PDRIVersion"};
-    const int numberOfParams = 3;
+    const char* validParams[] = {"--CurrentImageFilename", "--FlashedFilename", "--Modelname", "--HardwareId", "--Manufacturer", "--MfgSerialnumber", "--PDRIVersion"};
+    const int numberOfParams = 7;
 #else
-    const char* validParams[] = {"--CurrentImageFilename", "--FlashedFilename"};
-    const int numberOfParams = 2;
+    const char* validParams[] = {"--CurrentImageFilename", "--FlashedFilename", "--Modelname", "--HardwareId", "--Manufacturer", "--MfgSerialnumber"};
+    const int numberOfParams = 6;
 #endif
+
+/* both the args CurrentImageFilename & FlashedFilename are querying mfrSERIALIZED_TYPE_IMAGENAME.
+ * Leaving it as it is, to avoid breaking the caller */
+const mfrSerializedType_t mfr_args[] = {mfrSERIALIZED_TYPE_IMAGENAME, mfrSERIALIZED_TYPE_IMAGENAME, mfrSERIALIZED_TYPE_MODELNAME, mfrSERIALIZED_TYPE_HWID, mfrSERIALIZED_TYPE_MANUFACTURER, mfrSERIALIZED_TYPE_MANUFACTURING_SERIALNUMBER, mfrSERIALIZED_TYPE_PDRIVERSION};
+const char* mfr_args_str[] = {"mfrSERIALIZED_TYPE_IMAGENAME", "mfrSERIALIZED_TYPE_IMAGENAME", "mfrSERIALIZED_TYPE_MODELNAME", "mfrSERIALIZED_TYPE_HWID", "mfrSERIALIZED_TYPE_MANUFACTURER", "mfrSERIALIZED_TYPE_MANUFACTURING_SERIALNUMBER", "mfrSERIALIZED_TYPE_PDRIVERSION"}; 
+
 
 void displayHelp() {
      printf("Usage : mfr_util [CMD] \n");
@@ -50,6 +50,10 @@ void displayHelp() {
      printf("%5s -> %s \n","--help", "print this help.");
      printf("%5s -> %s \n","--CurrentImageFilename", "Get current running imagename ");
      printf("%5s -> %s \n","--FlashedFilename", "Get current flashed imagename ");
+     printf("%5s -> %s \n","--Modelname", "Get Model name");
+     printf("%5s -> %s \n","--HardwareId", "Get Hardware ID");
+     printf("%5s -> %s \n","--Manufacturer", "Get Manufacturer name");
+     printf("%5s -> %s \n","--MfgSerialnumber", "Get Manufacturer serial number");
 #if defined(YOCTO_BUILD)
      printf("%5s -> %s \n","--PDRIVersion", "Get current PDRIVersion ");
 #endif
@@ -72,129 +76,6 @@ int validateParams(const char* param) {
     return paramIndex;
 }
 
-void getCurrentRunningFileName() {
-    IARM_Bus_MFRLib_GetSerializedData_Param_t *param;
-    IARM_Result_t ret;
-    char *pTmpStr;
-    int len;
-
-    //redirect stdout to null to avoid printing debug prints from IARM Bus
-    FILE * fp_orig = stdout;  //preserve the original stdout
-    stdout = fopen("/dev/null","w");
-
-    IARM_Bus_Init("mfr_util");
-    IARM_Bus_Connect();
-    IARM_Malloc(IARM_MEMTYPE_PROCESSLOCAL, sizeof(IARM_Bus_MFRLib_GetSerializedData_Param_t), (void**)&param);
-
-    stdout=fp_orig;  //restore stdout
-
-    param->type = mfrSERIALIZED_TYPE_IMAGENAME;
-
-    ret = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
-               IARM_BUS_MFRLIB_API_GetSerializedData,
-           (void *)param,
-           sizeof(IARM_Bus_MFRLib_GetSerializedData_Param_t));
-
-    if(ret != IARM_RESULT_SUCCESS)
-    {
-       printf("Call failed for %s: error code:%d\n","mfrSERIALIZED_TYPE_PDRIVERSION",ret);
-    }
-    else
-    {
-       len = param->bufLen + 1;
-       pTmpStr = (char *)malloc(len);
-       memset(pTmpStr,0,len);
-       memcpy(pTmpStr,param->buffer,param->bufLen);
-       printf("%s\n", pTmpStr);
-       free(pTmpStr);
-    }
-    IARM_Free(IARM_MEMTYPE_PROCESSLOCAL,param);
-    return ;
-}
-
-void getCurrentFlashedFileName() {
-    IARM_Bus_MFRLib_GetSerializedData_Param_t *param;
-    IARM_Result_t ret;
-    char *pTmpStr;
-    int len;
-
-    //redirect stdout to null to avoid printing debug prints from IARM Bus
-    FILE * fp_orig = stdout;  //preserve the original stdout
-    stdout = fopen("/dev/null","w");
-
-    IARM_Bus_Init("mfr_util");
-    IARM_Bus_Connect();
-    IARM_Malloc(IARM_MEMTYPE_PROCESSLOCAL, sizeof(IARM_Bus_MFRLib_GetSerializedData_Param_t), (void**)&param);
-
-    stdout=fp_orig;  //restore stdout
-
-    param->type = mfrSERIALIZED_TYPE_IMAGENAME;
-
-    ret = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
-               IARM_BUS_MFRLIB_API_GetSerializedData,
-           (void *)param,
-           sizeof(IARM_Bus_MFRLib_GetSerializedData_Param_t));
-
-    if(ret != IARM_RESULT_SUCCESS)
-    {
-       printf("Call failed for %s: error code:%d\n","mfrSERIALIZED_TYPE_PDRIVERSION",ret);
-    }
-    else
-    {
-       len = param->bufLen + 1;
-       pTmpStr = (char *)malloc(len);
-       memset(pTmpStr,0,len);
-       memcpy(pTmpStr,param->buffer,param->bufLen);
-       printf("%s\n", pTmpStr);
-       free(pTmpStr);
-    }
-    IARM_Free(IARM_MEMTYPE_PROCESSLOCAL,param);
-    return ;
-}
-
-
-#if defined(YOCTO_BUILD)
-void getPDRIVersion(){
-
-    IARM_Bus_MFRLib_GetSerializedData_Param_t *param;
-    IARM_Result_t ret;
-    char *pTmpStr;
-    int len;
-
-    //redirect stdout to null to avoid printing debug prints from IARM Bus
-    FILE * fp_orig = stdout;  //preserve the original stdout
-    stdout = fopen("/dev/null","w");
-
-    IARM_Bus_Init("mfr_util");
-    IARM_Bus_Connect();
-    IARM_Malloc(IARM_MEMTYPE_PROCESSLOCAL, sizeof(IARM_Bus_MFRLib_GetSerializedData_Param_t), (void**)&param);
-
-    stdout=fp_orig;  //restore stdout
-
-    param->type = mfrSERIALIZED_TYPE_PDRIVERSION;
-
-    ret = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
-               IARM_BUS_MFRLIB_API_GetSerializedData,
-           (void *)param,
-           sizeof(IARM_Bus_MFRLib_GetSerializedData_Param_t));
-
-    if(ret != IARM_RESULT_SUCCESS)
-    {
-       printf("Call failed for %s: error code:%d\n","mfrSERIALIZED_TYPE_PDRIVERSION",ret);
-    }
-    else
-    {
-       len = param->bufLen + 1;
-       pTmpStr = (char *)malloc(len);
-       memset(pTmpStr,0,len);
-       memcpy(pTmpStr,param->buffer,param->bufLen);
-       printf("%s\n", pTmpStr);
-       free(pTmpStr);
-    }
-    IARM_Free(IARM_MEMTYPE_PROCESSLOCAL,param);
-}
-#endif
-
 int main(int argc, char *argv[])
 {
 
@@ -206,30 +87,55 @@ int main(int argc, char *argv[])
     }
 
     paramIndex = validateParams(argv[1]);
-
-    if( validateParams(argv[1]) == -1 ){
+    if( paramIndex == -1 ){
         displayHelp();
         return -1;
     }
 
-    switch(paramIndex) {
-        /*Check for validParams array for parameter name mapping*/
-        case 0 :
-            getCurrentRunningFileName();
-            break;
-        case 1 :
-            getCurrentFlashedFileName();
-            break;
-#if defined(YOCTO_BUILD)            
-        case 2 :
-            getPDRIVersion();
-            break;
-#endif
-        default :
-            displayHelp();
-            break;
+    IARM_Bus_MFRLib_GetSerializedData_Param_t *param;
+    IARM_Result_t ret;
 
+    //redirect stdout to null to avoid printing debug prints from IARM Bus
+    int fp_old = dup(1);  // preserve the original stdout
+    freopen ("/dev/null", "w", stdout);
+
+    IARM_Bus_Init("mfr_util");
+    IARM_Bus_Connect();
+    IARM_Malloc(IARM_MEMTYPE_PROCESSLOCAL, sizeof(IARM_Bus_MFRLib_GetSerializedData_Param_t), (void**)&param);
+
+    fclose(stdout);
+    stdout = fdopen(fp_old, "w"); // restore stdout
+
+    param->type = mfr_args[paramIndex];;
+
+    ret = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
+              IARM_BUS_MFRLIB_API_GetSerializedData,
+              (void *)param,
+              sizeof(IARM_Bus_MFRLib_GetSerializedData_Param_t));
+
+    if(ret != IARM_RESULT_SUCCESS)
+    {
+       printf("Call failed for %s: error code:%d\n", mfr_args_str[paramIndex], ret);
     }
+    else
+    {
+       int len = param->bufLen + 1;
+       char *pTmpStr = (char *)malloc(len);
+       memset(pTmpStr,0,len);
+       memcpy(pTmpStr,param->buffer,param->bufLen);
+       printf("%s\n", pTmpStr);
+       free(pTmpStr);
+    }
+    IARM_Free(IARM_MEMTYPE_PROCESSLOCAL,param);
+
+    fp_old = dup(1);  // preserve the original stdout
+    freopen ("/dev/null", "w", stdout);
+
+    IARM_Bus_Disconnect();
+    IARM_Bus_Term();
+
+    fclose(stdout);
+    stdout = fdopen(fp_old, "w"); // restore stdout
 
     return 0;
 }
