@@ -30,25 +30,26 @@ AM_CFLAGS = \
 	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/rdk/iarmmgrs/rdmmgr \
 	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/rdk/iarmmgrs/receiver \
 	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/rdk/iarmmgrs/sysmgr \
+	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/WPEFramework/powercontroller \
 	-L$(PKG_CONFIG_SYSROOT_DIR)/usr/lib/
 
 
-include_HEADERS = $(top_srcdir)/RDKIrKeyCodes.h
+include_HEADERS = $(top_srcdir)/key_simulator/RDKIrKeyCodes.h
 
 bin_PROGRAMS = keySimulator mfr_util QueryPowerState SetPowerState IARM_event_sender
 
-mfr_util_SOURCES = sys_mfr_utils.c
+mfr_util_SOURCES = mfr-utils/sys_mfr_utils.c
 mfr_util_LDADD = -lIARMBus
 
-QueryPowerState_SOURCES=IARM_Bus_CheckPowerStatus.c
-QueryPowerState_LDADD = $(DIRECT_LIBS) $(FUSION_LIBS) $(GLIB_LIBS) -lIARMBus $(DBUS_LIBS)
+QueryPowerState_SOURCES=iarm_query_powerstate/IARM_Bus_CheckPowerStatus.c
+QueryPowerState_LDADD = $(DIRECT_LIBS) $(FUSION_LIBS) $(GLIB_LIBS) $(DBUS_LIBS) -lWPEFrameworkPowerController
 
-SetPowerState_SOURCES=IARM_BUS_SetPowerStatus.c
-SetPowerState_LDADD = -ldbus-1 -lstdc++ -lIARMBus -lpthread
+SetPowerState_SOURCES=iarm_set_powerstate/IARM_BUS_SetPowerStatus.c
+SetPowerState_LDADD = -ldbus-1 -lstdc++ -lpthread -lWPEFrameworkPowerController
 
-keySimulator_SOURCES=IARM_BUS_UIEventSimulator.c uinput.c
+keySimulator_SOURCES=key_simulator/IARM_BUS_UIEventSimulator.c key_simulator/uinput.c
 keySimulator_LDADD = $(GLIB_LIBS) -lIARMBus $(DBUS_LIBS)
 
-IARM_event_sender_SOURCES = IARM_event_sender.c
+IARM_event_sender_SOURCES = iarm-event-sender/IARM_event_sender.c
 IARM_event_sender_LDADD = $(DIRECT_LIBS) $(FUSION_LIBS) $(GLIB_LIBS) -lIARMBus $(DBUS_LIBS)
 

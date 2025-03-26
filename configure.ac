@@ -21,7 +21,7 @@
 
 AC_PREREQ([2.68])
 AC_INIT([key_simulator], [1.0], [ridish.ra@lntteschservices.com])
-AC_CONFIG_SRCDIR([IARM_BUS_UIEventSimulator.c])
+AC_CONFIG_SRCDIR([key_simulator/IARM_BUS_UIEventSimulator.c])
 #AC_CONFIG_SRCDIR([src/udev_test.c])
 
 AC_CONFIG_MACRO_DIR([cfg])
