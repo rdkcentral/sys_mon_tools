@@ -45,12 +45,7 @@
 
 #include <linux/input.h>
 #include <stdint.h>
-
-#ifdef STANDALONE_BUILD
-#include "IrKeyCodes.h"
-#else
 #include "comcastIrKeyCodes.h"
-#endif
 
 #ifdef __cplusplus
 extern "C" {

@@ -57,13 +57,6 @@ function usage()
     echo "      configure, clean, build (DEFAULT), rebuild, install"
 }
 
-# options may be followed by one colon to indicate they have a required argument
-if ! GETOPT=$(getopt -n "build.sh" -o hvp: -l help,verbose,platform: -- "$@")
-then
-    usage
-    exit 1
-fi
-
 eval set -- "$GETOPT"
 
 while true; do
@@ -79,6 +72,7 @@ done
 
 ARGS=$@
 
+
 # component-specific vars
 export RDK_PLATFORM_SOC=${RDK_PLATFORM_SOC-broadcom}
 export PLATFORM_SOC=$RDK_PLATFORM_SOC
@@ -88,45 +82,12 @@ export FSROOT=${RDK_FSROOT_PATH}
 export TOOLCHAIN_DIR=${RDK_TOOLCHAIN_PATH}
 export BUILDS_DIR=$RDK_PROJECT_ROOT_PATH
 
-function standaloneBuildClean()
-{
-    pd=`pwd`
-    CLEAN_BUILD=1
-    dnames="$RDK_SCRIPTS_PATH"
-    for dName in $dnames
-    do
-        cd $dName
-        if [ -f Makefile ]; then
-                make distclean
-            fi
-        rm -f configure
-        rm -rf aclocal.m4 autom4te.cache config.log config.status libtool
-            rm -rf install
-        find . -iname "Makefile.in" -exec rm -f {} \;
-        find . -iname "Makefile" | xargs rm -f
-        ls cfg/* | grep -v "Makefile.am" | xargs rm -f
-        cd $pd
-    done
-    find . -iname "*.o" -exec rm -f {} \;
-}
 
 # functional modules
-function standaloneBuildConfigure()
-{
-    cd $COMBINED_ROOT/sys_mon_tools
-    aclocal -I cfg
-    libtoolize --automake
-    autoheader
-    automake --foreign --add-missing
-    rm -f configure
-    autoconf
-    ./configure --with-libtool-sysroot=${RDK_FSROOT_PATH} --disable-static --host=$HOST --prefix=${RDK_FSROOT_PATH}/usr/ --enable-standalonebuild
-    CC_PATH=$COMBINED_ROOT/sys_mon_tools
-    echo "CC_PATH ---> ${CC_PATH}"
-}
 
 function configure()
 {
+    echo "here"
     true #use this function to perform any pre-build configuration
 }
 
@@ -237,27 +198,7 @@ function build()
 	  export DFB_LIB=${FSROOT}/vendor/lib
 	  export OPENSOURCE_BASE=${FSROOT}/usr
 	  export CC="$CROSS_COMPILE-gcc $CFLAGS"
-	  export CXX="$CROSS_COMPILE-g++ $CFLAGS $LDFLAGS"
-   elif [ $RDK_PLATFORM_SOC = "standalone" ]; then
-          export GLIBS='-lglib-2.0 -lz'
-          export IARM_PATH="`readlink -m .`"
-          export ROOT_INC="/usr/lib/x86_64-linux-gnu"
-          export GLIB_INCLUDE_PATH="/usr/include/glib-2.0"
-          export GLIB_CONFIG_INCLUDE_PATH="${ROOT_INC}/glib-2.0/include"
-          export DBUS_INCLUDE_PATH="/usr/include/dbus-1.0"
-          export DBUS_CONFIG_INCLUDE_PATH="${ROOT_INC}/dbus-1.0/include"
-          export CFLAGS+="-O2 -Wall -fPIC -I./include -I${GLIB_INCLUDE_PATH} -I${GLIB_CONFIG_INCLUDE_PATH} \
-         -I${CC_PATH}/mocks \
-         -I/usr/include \
-         -I${DBUS_INCLUDE_PATH} \
-         -I${DBUS_CONFIG_INCLUDE_PATH} \
-         -I/usr/include/libsoup-2.4 \
-         -I/usr/include/gssdp-1.0"
-          export LDFLAGS+="-Wl,-rpath, -L/usr/lib"
-          export OPENSOURCE_BASE=${FSROOT}/usr
-          export CC="$CROSS_COMPILE-gcc $CFLAGS"
-          export CXX="$CROSS_COMPILE-g++ $CFLAGS $LDFLAGS"
-	  export USE_IARM_BUS="y"
+	  export CXX="$CROSS_COMPILE-g++ $CFLAGS $LDFLAGS"     
     fi
     if [ -d $IARM_PATH ]; then
 	  export USE_IARM_BUS="y"
@@ -270,13 +211,6 @@ function build()
 
     cd $CURR_DIR
 
-}
-
-function standaloneBuild()
-{
-    standaloneBuildClean
-    standaloneBuildConfigure
-    build
 }
 
 function rebuild()
@@ -303,9 +237,6 @@ for i in "$ARGS"; do
         build)      HIT=true; build ;;
         rebuild)    HIT=true; rebuild ;;
         install)    HIT=true; install ;;
-        standaloneBuildClean) HIT=true; standaloneBuildClean ;;
-        standaloneBuildConfigure) HIT=true; standaloneBuildConfigure ;;
-        standalone) HIT=true; standaloneBuild ;;
         *)
             #skip unknown
         ;;
