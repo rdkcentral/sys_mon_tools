@@ -39,17 +39,31 @@ include_HEADERS = $(top_srcdir)/key_simulator/RDKIrKeyCodes.h
 bin_PROGRAMS = keySimulator mfr_util QueryPowerState SetPowerState IARM_event_sender
 
 mfr_util_SOURCES = mfr-utils/sys_mfr_utils.c
-mfr_util_LDADD = -lIARMBus
 
 QueryPowerState_SOURCES=iarm_query_powerstate/IARM_Bus_CheckPowerStatus.c
-QueryPowerState_LDADD = $(DIRECT_LIBS) $(FUSION_LIBS) $(GLIB_LIBS) $(DBUS_LIBS) -lWPEFrameworkPowerController
+QueryPowerState_LDADD = $(DIRECT_LIBS) $(FUSION_LIBS) $(GLIB_LIBS) $(DBUS_LIBS)
 
 SetPowerState_SOURCES=iarm_set_powerstate/IARM_BUS_SetPowerStatus.c
-SetPowerState_LDADD = -ldbus-1 -lstdc++ -lpthread -lWPEFrameworkPowerController
+SetPowerState_LDADD = -ldbus-1 -lstdc++ -lpthread
 
 keySimulator_SOURCES=key_simulator/IARM_BUS_UIEventSimulator.c key_simulator/uinput.c
-keySimulator_LDADD = $(GLIB_LIBS) -lIARMBus $(DBUS_LIBS)
+keySimulator_LDADD = $(GLIB_LIBS) $(DBUS_LIBS)
 
 IARM_event_sender_SOURCES = iarm-event-sender/IARM_event_sender.c
-IARM_event_sender_LDADD = $(DIRECT_LIBS) $(FUSION_LIBS) $(GLIB_LIBS) -lIARMBus $(DBUS_LIBS)
+IARM_event_sender_LDADD = $(DIRECT_LIBS) $(FUSION_LIBS) $(GLIB_LIBS) $(DBUS_LIBS)
 
+if STANDALONE_BUILD
+AM_CFLAGS += -I$(top_srcdir)/mocks -DSTANDALONE_BUILD
+include_HEADERS += $(top_srcdir)/mocks/IrKeyCodes.h
+mfr_util_SOURCES += $(top_srcdir)/mocks/mockInternal.cpp
+QueryPowerState_SOURCES += $(top_srcdir)/mocks/mockInternal.cpp
+SetPowerState_SOURCES += $(top_srcdir)/mocks/mockInternal.cpp
+keySimulator_SOURCES += $(top_srcdir)/mocks/mockInternal.cpp
+IARM_event_sender_SOURCES += $(top_srcdir)/mocks/mockInternal.cpp
+else
+mfr_util_LDADD = -lIARMBus
+keySimulator_LDADD += -lIARMBus
+QueryPowerState_LDADD += -lWPEFrameworkPowerController
+SetPowerState_LDADD += -lWPEFrameworkPowerController
+IARM_event_sender_LDADD += -lIARMBus
+endif

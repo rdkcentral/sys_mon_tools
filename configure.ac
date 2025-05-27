@@ -50,6 +50,18 @@ PKG_CHECK_MODULES([DBUS], [dbus-1])
 
 AC_CHECK_LIB(gthread-2.0, g_thread_init)
 
+STANDALONE_BUILD=""
+AC_ARG_ENABLE([standalonebuild],
+        AS_HELP_STRING([--enable-standalonebuild],[This will enable mocks compilation. ]),
+        [
+          case "${enableval}" in
+           yes) STANDALONE_BUILD=true ;;
+            *) STANDALONE_BUILD=false echo[Standalone Build is disabled];;
+          esac
+        ],
+        [ STANDALONE_BUILD=false ; echo "Standalone Build not used"])
+AM_CONDITIONAL(STANDALONE_BUILD, test "x$STANDALONE_BUILD" = xtrue)
+
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T

@@ -25,7 +25,9 @@
 
 // This include is still required for data types to read cached power status residing in /opt/uimgr_settings.bin
 // TODO: after IARM PwrMgr logic is moved to PowerManager plugin refactor this code and remove this header file too.
+#ifndef STANDALONE_BUILD /*TODO: This check needs to be removed once old PowerManager reference addressed*/
 #include "pwrMgr.h"
+#endif
 
 #include "power_controller.h"
 
@@ -41,7 +43,9 @@ typedef struct _PWRMgr_Settings_t {
     uint32_t magic;
     uint32_t version;
     uint32_t length;
+#ifndef STANDALONE_BUILD /*TODO: This check needs to be removed once old PowerManager reference addressed*/
     IARM_Bus_PWRMgr_PowerState_t powerState;
+#endif /*STANDALONE_BUILD*/
     PWRMgr_LED_Settings_t ledSettings;
     uint32_t deep_sleep_timeout;
     char padding[PADDING_SIZE];
@@ -122,7 +126,7 @@ int main(int argc, char* argv[])
 
             close(fd);
         }
-
+#ifndef STANDALONE_BUILD /*TODO: This check needs to be removed once old PowerManager reference addressed*/
         if (ret > 0) {
             if (IARM_BUS_PWRMGR_POWERSTATE_OFF == pwrSettings.powerState) {
                 printf("OFF");
@@ -140,7 +144,7 @@ int main(int argc, char* argv[])
         } else {
             printf("Error in reading PWRMgr settings File");
         }
-
+#endif
         printf("\n");
     }
     return 0;
