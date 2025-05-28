@@ -1,4 +1,6 @@
 #!/bin/bash
+set -x
+set -e
 
 WORKDIR=`pwd`
 export ROOT=/home/rdkv-core/Yuvaram/workspace/downloads
