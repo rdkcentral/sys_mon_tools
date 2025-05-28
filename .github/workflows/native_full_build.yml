@@ -19,6 +19,6 @@ jobs:
 
       - name: native build
         run: |
-          sh -e cov_build.sh
+          sh -x cov_build.sh
         env:
           GITHUB_TOKEN: ${{ secrets.RDKCM_RDKE }}
