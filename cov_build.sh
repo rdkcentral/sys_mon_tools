@@ -8,6 +8,9 @@ export ROOT=/usr
 export INSTALL_DIR=${ROOT}/local
 mkdir -p $INSTALL_DIR
 
+apt update
+apt install -y libdbus-1-dev
+
 cd $ROOT
 rm -rf iarmbus
 git clone https://github.com/rdkcentral/iarmbus.git
