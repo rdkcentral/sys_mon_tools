@@ -1,10 +1,14 @@
 #!/bin/bash
+set -x
+set -e
 
 WORKDIR=`pwd`
-export ROOT=/home/rdkv-core/Yuvaram/workspace/downloads
 export ROOT=/usr
 export INSTALL_DIR=${ROOT}/local
 mkdir -p $INSTALL_DIR
+
+apt update
+apt install -y libdbus-1-dev
 
 cd $ROOT
 rm -rf iarmbus
