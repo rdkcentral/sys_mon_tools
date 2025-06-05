@@ -104,8 +104,11 @@ int main(int argc, char *argv[])
     IARM_Malloc(IARM_MEMTYPE_PROCESSLOCAL, sizeof(IARM_Bus_MFRLib_GetSerializedData_Param_t), (void**)&param);
 
     fclose(stdout);
-    stdout = fdopen(fp_old, "w"); // restore stdout
-
+    if(fp_old>0)
+    {
+        stdout = fdopen(fp_old, "w"); // restore stdout
+    }
+    
     param->type = mfr_args[paramIndex];;
 
     ret = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
@@ -135,7 +138,10 @@ int main(int argc, char *argv[])
     IARM_Bus_Term();
 
     fclose(stdout);
-    stdout = fdopen(fp_old, "w"); // restore stdout
+    if(fp_old>0)
+    {
+        stdout = fdopen(fp_old, "w"); // restore stdout
+    }
 
     return 0;
 }
