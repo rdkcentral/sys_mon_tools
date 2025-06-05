@@ -2,7 +2,7 @@ name: Build Component in Native Environment
 
 on:
   push:
-    branches: [ main, 'sprint/**', 'release/**', develop ]
+    branches: [ main, 'sprint/**', 'release/**', topic/RDK*, feature/RDK*, develop ]
   pull_request:
     branches: [ main, 'sprint/**', 'release/**', topic/RDK*, feature/RDK*, develop ]
 
@@ -19,4 +19,4 @@ jobs:
 
       - name: native build
         run: |
-          ./cov_build.sh
+          ./build_dependencies.sh
