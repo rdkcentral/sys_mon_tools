@@ -7,6 +7,9 @@ export ROOT=/usr
 export INSTALL_DIR=${ROOT}/local
 mkdir -p $INSTALL_DIR
 
+export IARMBUS_PATH=$ROOT/iarmbus
+export IARMMGRS_PATH=$ROOT/iarmmgrs
+
 function standaloneBuildClean()
 {
     pd=`pwd`

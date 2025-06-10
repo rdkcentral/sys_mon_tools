@@ -25,13 +25,6 @@ cd ./stubs
 g++ -fPIC -shared -o libIARMBus.so iarm_stubs.cpp -I$WORKDIR/stubs -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I$IARMBUS_PATH/core -I$IARMBUS_PATH/core/include -fpermissive
 g++ -fPIC -shared -o libWPEFrameworkPowerController.so powerctrl_stubs.cpp  -I$WORKDIR/stubs -fpermissive
 
-#cp $IARMBUS_PATH/core/libIARMCore.h /usr/local/include
-#cp $IARMBUS_PATH/core/include/libIBus.h /usr/local/include
-#cp $IARMBUS_PATH/core/include/libIARM.h /usr/local/include
-#cp $IARMBUS_PATH/core/include/libIBusDaemon.h /usr/local/include
-#cp $IARMMGRS_PATH/hal/include/comcastIrKeyCodes.h /usr/local/include
-#cp $IARMMGRS_PATH/mfr/include/mfr*.h /usr/local/include
-#cp $IARMMGRS_PATH/mfr/common/include/mfrApi.h /usr/local/include
 
 cp libIARMBus.so /usr/local/lib
 cp libWPEFrameworkPowerController.so /usr/local/lib/libWPEFrameworkPowerController.so
