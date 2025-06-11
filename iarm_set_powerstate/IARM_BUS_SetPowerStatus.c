@@ -146,11 +146,7 @@ static void terminateController(Controller* controller)
 
     PowerController_UnRegisterPowerModePreChangeCallback(onPowerModePreChangeEvent);
 
-    // TODO: without this delay there is a hang Communicator ThreadPool destroy.
-    // This is captured as part of jira `RDK-56273` & will be taken up in future sprints.
-    sleep(1);
     PowerController_Term();
-    printf("PowerController_Term after 1s delay\n");
 }
 
 static void runDelay(Controller* controller)
