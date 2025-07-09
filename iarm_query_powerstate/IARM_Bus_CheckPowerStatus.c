@@ -23,13 +23,22 @@
 #include <string.h>
 #include <unistd.h>
 
-// This include is still required for data types to read cached power status residing in /opt/uimgr_settings.bin
-// TODO: after IARM PwrMgr logic is moved to PowerManager plugin refactor this code and remove this header file too.
-#include "pwrMgr.h"
-
 #include "power_controller.h"
 
 #define PADDING_SIZE 32
+
+/**
+ * @brief All possible power states
+*/
+typedef enum _Daemon_PowerState_t
+{
+    PWRMGR_POWERSTATE_OFF,                  /*!< Power state OFF */
+    PWRMGR_POWERSTATE_STANDBY,              /*!< Power state STANDBY */
+    PWRMGR_POWERSTATE_ON,                   /*!< Power state ON */
+    PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP,  /*!< Power state Standby Light Sleep */
+    PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP,   /*!< Power state DeepSleep power saving mode */
+    PWRMGR_POWERSTATE_MAX                   /*!< Out of range - required to be the last item of the enum */
+} PWRMgr_PowerState_t;
 
 /*LED settings*/
 typedef struct _PWRMgr_LED_Settings_t {
@@ -41,7 +50,7 @@ typedef struct _PWRMgr_Settings_t {
     uint32_t magic;
     uint32_t version;
     uint32_t length;
-    IARM_Bus_PWRMgr_PowerState_t powerState;
+    PWRMgr_PowerState_t powerState;
     PWRMgr_LED_Settings_t ledSettings;
     uint32_t deep_sleep_timeout;
     char padding[PADDING_SIZE];
@@ -124,15 +133,15 @@ int main(int argc, char* argv[])
         }
 
         if (ret > 0) {
-            if (IARM_BUS_PWRMGR_POWERSTATE_OFF == pwrSettings.powerState) {
+            if (PWRMGR_POWERSTATE_OFF == pwrSettings.powerState) {
                 printf("OFF");
-            } else if (IARM_BUS_PWRMGR_POWERSTATE_STANDBY == pwrSettings.powerState) {
+            } else if (PWRMGR_POWERSTATE_STANDBY == pwrSettings.powerState) {
                 printf("STANDBY");
-            } else if (IARM_BUS_PWRMGR_POWERSTATE_ON == pwrSettings.powerState) {
+            } else if (PWRMGR_POWERSTATE_ON == pwrSettings.powerState) {
                 printf("ON");
-            } else if (IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP == pwrSettings.powerState) {
+            } else if (PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP == pwrSettings.powerState) {
                 printf("LIGHTSLEEP");
-            } else if (IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP == pwrSettings.powerState) {
+            } else if (PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP == pwrSettings.powerState) {
                 printf("DEEPSLEEP");
             } else {
                 printf("Unknown Power state");
