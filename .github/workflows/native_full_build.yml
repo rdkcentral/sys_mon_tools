@@ -19,4 +19,5 @@ jobs:
 
       - name: native build
         run: |
+          ./build_dependencies.sh
           ./cov_build.sh
