@@ -97,7 +97,15 @@ int main(int argc, char *argv[])
 
     //redirect stdout to null to avoid printing debug prints from IARM Bus
     int fp_old = dup(1);  // preserve the original stdout
-    freopen ("/dev/null", "w", stdout);
+    if(fp_old == -1) {
+        printf("dup() failed to preserve stdout\n");
+        return -1;
+    }
+    if(freopen ("/dev/null", "w", stdout) == NULL){
+        printf("freopen() failed to redirect stdout\n");
+        close(fp_old);
+        return -1;
+    }
 
     IARM_Bus_Init("mfr_util");
     IARM_Bus_Connect();
@@ -105,6 +113,11 @@ int main(int argc, char *argv[])
 
     fclose(stdout);
     stdout = fdopen(fp_old, "w"); // restore stdout
+    if (stdout == NULL){
+        printf("Failed to restore stdout\n");
+        close(fp_old);
+        return -1;
+    }
 
     param->type = mfr_args[paramIndex];;
 
@@ -129,13 +142,26 @@ int main(int argc, char *argv[])
     IARM_Free(IARM_MEMTYPE_PROCESSLOCAL,param);
 
     fp_old = dup(1);  // preserve the original stdout
-    freopen ("/dev/null", "w", stdout);
+    if(fp_old == -1) {
+        printf("dup() failed to preserve stdout\n");
+        return -1;
+    }
+    if(freopen ("/dev/null", "w", stdout) == NULL){
+        printf("freopen() failed to redirect stdout\n");
+        close(fp_old);
+        return -1;
+    }
 
     IARM_Bus_Disconnect();
     IARM_Bus_Term();
 
     fclose(stdout);
     stdout = fdopen(fp_old, "w"); // restore stdout
+    if (stdout == NULL){
+        printf("Failed to restore stdout\n");
+        close(fp_old);
+        return -1;
+    }
 
     return 0;
 }
