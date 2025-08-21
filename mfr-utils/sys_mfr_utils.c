@@ -111,13 +111,15 @@ int main(int argc, char *argv[])
     IARM_Bus_Connect();
     IARM_Malloc(IARM_MEMTYPE_PROCESSLOCAL, sizeof(IARM_Bus_MFRLib_GetSerializedData_Param_t), (void**)&param);
 
-    fclose(stdout);
-    stdout = fdopen(fp_old, "w"); // restore stdout
-    if (stdout == NULL){
-        printf("Failed to restore stdout\n");
+    fflush(stdout); // ensure buffer is flushed
+    // restore original stdout
+    if (dup2(fp_old, fileno(stdout)) == -1) {
+        printf("dup2() failed to restore stdout\n");
         close(fp_old);
+        IARM_Free(IARM_MEMTYPE_PROCESSLOCAL, param);
         return -1;
     }
+    close(fp_old);
 
     param->type = mfr_args[paramIndex];;
 
@@ -155,13 +157,14 @@ int main(int argc, char *argv[])
     IARM_Bus_Disconnect();
     IARM_Bus_Term();
 
-    fclose(stdout);
-    stdout = fdopen(fp_old, "w"); // restore stdout
-    if (stdout == NULL){
-        printf("Failed to restore stdout\n");
+    fflush(stdout); // ensure buffer is flushed
+    // restore original stdout
+    if (dup2(fp_old, fileno(stdout)) == -1) {
+        printf("dup2() failed to restore stdout\n");
         close(fp_old);
         return -1;
     }
+    close(fp_old);
 
     return 0;
 }
