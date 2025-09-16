@@ -38,6 +38,65 @@
 #ifdef HAS_WIFI_SUPPORT
 #include "netsrvmgrIarm.h"
 #endif
+#include <stdbool.h>
+
+#define MAX_ARG_NO_TYPE        (6)
+
+/*
+ * -----------------------------
+ * Argument Assignment Macros
+ * -----------------------------
+ */
+#define INT_ARG(n)   args[n].val.i
+#define BOOL_ARG(n)  args[n].val.b
+#define STR_ARG(n)   args[n].val.s
+
+
+/*
+ * -----------------------------
+ * Argument Types
+ * -----------------------------
+ */
+typedef enum {
+    ARG_INT,
+    ARG_STRING,
+    ARG_BOOL
+} ArgType;
+
+typedef struct {
+    ArgType type;
+    union {
+        int   i;
+        bool  b;
+        const char *s;
+    } val;
+} ArgValue;
+
+/*
+ * -----------------------------
+ * Event Handling
+ * -----------------------------
+ */
+typedef void (*IARM_EventHandler)(ArgValue *args);
+
+typedef struct {
+    const char *name;
+    int argc_expected;
+    ArgType arg_types[MAX_ARG_NO_TYPE];
+    IARM_EventHandler handler;
+} IARM_EventEntry;
+
+static void printUsage(const char *prog);
+static bool parseArg(const char *arg, ArgType type, ArgValue *out);
+static void handleIARMEvents(int argc, char *argv[]);
+
+static void handleHdmiAllmEvent(ArgValue *args);
+static void handleHdmiVrrEvent(ArgValue *args);
+static void handleCompositeInHotPlug(ArgValue *args);
+static void handleCompositeInSignalStatus(ArgValue *args);
+static void handleCompositeInVideoModeUpdate(ArgValue *args);
+static void handleCompositeInStatus(ArgValue *args);
+
 
 IARM_Result_t sendIARMEvent(GString* currentEventName, unsigned char eventStatus);
 IARM_Result_t sendIARMEventPayload(GString* currentEventName, char *eventPayload);
@@ -61,6 +120,19 @@ static struct eventList{
     {"RedStateEvent",IARM_BUS_SYSMGR_SYSSTATE_RED_RECOV_UPDATE_STATE}
 };
 
+/* Table only used for IARM Events */
+
+static IARM_EventEntry iarmEventTable[] = {
+    { "IARM_HdmiAllmEvent",               2, { ARG_INT, ARG_INT  }, handleHdmiAllmEvent },
+    { "IARM_HdmiVrrEvent",                2, { ARG_INT, ARG_INT  }, handleHdmiVrrEvent },
+    { "IARM_CompositeInHotPlug",          2, { ARG_INT, ARG_BOOL }, handleCompositeInHotPlug },
+    { "IARM_CompositeInSignalStatus",     2, { ARG_INT, ARG_INT  }, handleCompositeInSignalStatus },
+    { "IARM_CompositeInStatus",           2, { ARG_INT, ARG_BOOL }, handleCompositeInStatus },
+    { "IARM_CompositeInVideoModeUpdate",  2, { ARG_INT, ARG_INT  }, handleCompositeInVideoModeUpdate },
+};
+static const int iarmEventTableSize = sizeof(iarmEventTable) / sizeof(iarmEventTable[0]);
+
+
 #define EVENT_INTRUSION "IntrusionEvent"
 #define INTRU_ABREV '+' // last character for abreviated buffer
 #define JSON_TERM "\"}]}" // valid termination for overflowed buffer
@@ -78,6 +150,9 @@ int main(int argc,char *argv[])
         g_message(">>>>> Send IARM_BUS_NAME EVENT current Event Name =%s,evenstatus=%d",currentEventName->str,eventStatus);
         sendIARMEvent(currentEventName,eventStatus);
         return 0;
+    }
+    else if (argc >= 2 && !strncmp(argv[1], "IARM_", 5)) {
+        handleIARMEvents(argc, argv);
     } 
     else if (argc == 4)
     {
@@ -188,6 +263,7 @@ int main(int argc,char *argv[])
         g_message("Usage: %s <event name > <event status> \n",argv[0]);
         g_message("Usage: %s CustomEvent <event stateId> <event state> <event error> \n",argv[0]);
         g_message("(%d)\n",argc );
+        printUsage(argv[0]);
         return 1;
     }
 }
@@ -495,4 +571,184 @@ IARM_Result_t sendIARMEventPayload(GString* currentEventName, char *eventPayload
 	return retCode;
 }
 
+/*
+ * Parse Helper Function
+ */
+static bool parseArg(const char *arg, ArgType type, ArgValue *out)
+{
+    out->type = type;
+    switch (type) {
+        case ARG_INT:
+            out->val.i = atoi(arg);
+            return true;
+        case ARG_BOOL:
+            if (!strcasecmp(arg, "1") || !strcasecmp(arg, "true")) { out->val.b = true;  return true; }
+            if (!strcasecmp(arg, "0") || !strcasecmp(arg, "false")){ out->val.b = false; return true; }
+            return false;
+        case ARG_STRING:
+        default:
+            out->val.s = arg;
+            return true;
+    }
+}
 
+
+static void handleHdmiAllmEvent(ArgValue *args)
+{
+    int port      = INT_ARG(0);
+    int allm_mode = INT_ARG(1);
+
+    g_message("HdmiAllmEvent: port=%d, allm_mode=%d", port, allm_mode);
+
+    IARM_Bus_DSMgr_EventData_t eventData;
+    eventData.data.hdmi_in_allm_mode.port = port;
+    eventData.data.hdmi_in_allm_mode.allm_mode = allm_mode;
+
+    IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                            (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_HDMI_IN_ALLM_STATUS,
+                            &eventData,
+                            sizeof(eventData));
+}
+
+static void handleHdmiVrrEvent(ArgValue *args)
+{
+    int port       = INT_ARG(0);
+    int vrr_status = INT_ARG(1);
+
+    g_message("handleHdmiVrrEvent: port=%d, vrr_status=%d", port, vrr_status);
+
+    IARM_Bus_DSMgr_EventData_t hdmi_in_vrrMode_eventData;
+    hdmi_in_vrrMode_eventData.data.hdmi_in_vrr_mode.port = port;
+    hdmi_in_vrrMode_eventData.data.hdmi_in_vrr_mode.vrr_type = vrr_status;
+
+    IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                            (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_HDMI_IN_VRR_STATUS,
+                            (void *)&hdmi_in_vrrMode_eventData,
+                            sizeof(hdmi_in_vrrMode_eventData));
+}
+
+static void handleCompositeInHotPlug(ArgValue *args)
+{
+	int port       = INT_ARG(0);
+    bool enabled   = BOOL_ARG(1);
+
+    g_message("handleCompositeInHotPlug: port=%d, enabled=%s",
+              port, enabled ? "true" : "false");
+    IARM_Bus_DSMgr_EventData_t composite_in_hpd_eventData;
+	composite_in_hpd_eventData.data.composite_in_connect.port = port;
+    composite_in_hpd_eventData.data.composite_in_connect.isPortConnected = isPortConnected;
+
+    IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+	                        (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_HOTPLUG,
+	                        (void *)&composite_in_hpd_eventData,
+	                        sizeof(composite_in_hpd_eventData));
+}
+
+
+static void handleCompositeInSignalStatus(ArgValue *args)
+{
+	int port       = INT_ARG(0);
+    int sigStatus   = INT_ARG(1);
+
+    g_message("handleCompositeInSignalStatus: port=%d, sigStatus=%d", port, sigStatus);
+	IARM_Bus_DSMgr_EventData_t composite_in_sigStatus_eventData;
+    composite_in_sigStatus_eventData.data.composite_in_sig_status.port = port;
+    composite_in_sigStatus_eventData.data.composite_in_sig_status.status = sigStatus;
+
+	IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+			        (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS,
+			        (void *)&composite_in_sigStatus_eventData,
+			        sizeof(composite_in_sigStatus_eventData));
+}
+
+
+static void handleCompositeInStatus(ArgValue *args)
+{
+	int port       = INT_ARG(0);
+    bool isPresented   = BOOL_ARG(1);
+
+    g_message("handleCompositeInStatus: port=%d, enabled=%s",
+              port, isPresented ? "true" : "false");
+	IARM_Bus_DSMgr_EventData_t hdmi_in_status_eventData;
+    hdmi_in_status_eventData.data.composite_in_status.port = port;
+    hdmi_in_status_eventData.data.composite_in_status.isPresented = isPresented;
+
+    IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                                (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS,
+                                (void *)&hdmi_in_status_eventData,
+                                sizeof(hdmi_in_status_eventData));
+}
+
+
+static void handleCompositeInVideoModeUpdate(ArgValue *args)
+{
+	int port              = INT_ARG(0);
+    int pixelResolution   = INT_ARG(1);
+
+    g_message("handleCompositeInVideoModeUpdate: port=%d, pixelResolution=%d", port, pixelResolution);
+    IARM_Bus_DSMgr_EventData_t composite_in_videoMode_eventData;
+    composite_in_videoMode_eventData.data.composite_in_video_mode.port = port;
+    composite_in_videoMode_eventData.data.composite_in_video_mode.resolution.pixelResolution = pixelResolution;
+    //Temporary Values are filled and avoided multiple input paramaters
+    composite_in_videoMode_eventData.data.composite_in_video_mode.resolution.interlaced = 1;
+    composite_in_videoMode_eventData.data.composite_in_video_mode.resolution.frameRate = 90;
+    IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                                (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_VIDEO_MODE_UPDATE,
+                                (void *)&composite_in_videoMode_eventData,
+                                sizeof(composite_in_videoMode_eventData));
+}
+
+
+
+
+// -----------------------------
+// Dispatcher
+// -----------------------------
+static void handleIARMEvents(int argc, char *argv[])
+{
+    const char *eventName = argv[1];
+
+    for (int i = 0; i < iarmEventTableSize; i++) {
+        IARM_EventEntry *entry = &iarmEventTable[i];
+        if (!strcmp(eventName, entry->name)) {
+
+            if (argc - 2 != entry->argc_expected) {
+                g_message("Error: %s expects %d args, got %d\n",
+                       entry->name, entry->argc_expected, argc - 2);
+                return;
+            }
+
+            ArgValue args[MAX_ARG_NO_TYPE];
+            for (int j = 0; j < entry->argc_expected; j++) {
+                if (!parseArg(argv[j+2], entry->arg_types[j], &args[j])) {
+                    g_message("Error: invalid arg %d ('%s') for event %s\n",
+                           j+1, argv[j+2], entry->name);
+                    return;
+                }
+            }
+
+            /* Debug: print parsed args */
+            g_message("[IARM] Dispatching %s with %d args\n", eventName, entry->argc_expected);
+            for (int j = 0; j < entry->argc_expected; j++) {
+                switch (args[j].type) {
+                    case ARG_INT:    g_message("  Arg[%d] INT  = %d\n", j, args[j].val.i); break;
+                    case ARG_BOOL:   g_message("  Arg[%d] BOOL = %s\n", j, args[j].val.b ? "true" : "false"); break;
+                    case ARG_STRING: g_message("  Arg[%d] STR  = %s\n", j, args[j].val.s); break;
+                }
+            }
+            entry->handler(args);
+            return;
+        }
+    }
+    g_message("Error: Unknown IARM event: %s\n", eventName);
+	printUsage(argv[0]);
+}
+
+
+static void printUsage(const char *prog)
+{
+    g_message("Usage Applicable only for IARM Events:\n");
+    g_message("  %s IARM_HdmiAllmEvent <port> <allm_mode>\n", prog);
+    g_message("  %s IARM_FeatureToggleEvent <featureId> <true|false>\n", prog);
+    g_message("  %s IARM_AnotherEvent <port> <mode>\n", prog);
+}
