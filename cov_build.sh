@@ -74,5 +74,5 @@ standaloneBuildConfigure
 #cp $IARMMGRS_PATH/mfr/include/mfr*.h /usr/local/include
 #cp $IARMMGRS_PATH/mfr/common/include/mfrApi.h /usr/local/include
 
-make VERBOSE=1 AM_CPPFLAGS="-I${WORKDIR}/stubs -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libsoup-3.0 -I/usr/local/include -I${IARMMGRS_PATH}/sysmgr/include -I${IARMBUS_PATH}/core -I${IARMBUS_PATH}/core/include -I${IARMMGRS_PATH}/hal/include -I${IARMMGRS_PATH}/mfr/include -I${IARMMGRS_PATH}/mfr/common/include -I${IARMMGRS_PATH}/../devicesettings/rpc/include" \
+make VERBOSE=1 AM_CPPFLAGS="-I${WORKDIR}/stubs -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libsoup-3.0 -I/usr/local/include -I${IARMMGRS_PATH}/sysmgr/include -I${IARMBUS_PATH}/core -I${IARMBUS_PATH}/core/include -I${IARMMGRS_PATH}/hal/include -I${IARMMGRS_PATH}/mfr/include -I${IARMMGRS_PATH}/mfr/common/include -I${IARMMGRS_PATH}/../devicesettings/tree/develop/rpc/include" \
 AM_LDFLAGS="-L/usr/local/lib -lIARMBus -lWPEFrameworkPowerController"  CXXFLAGS="-fpermissive -I${WORKDIR}/stubs"
