@@ -39,6 +39,7 @@
 #include "netsrvmgrIarm.h"
 #endif
 #include <stdbool.h>
+#include "dsMgr.h"
 
 #define MAX_ARG_NO_TYPE        (6)
 
