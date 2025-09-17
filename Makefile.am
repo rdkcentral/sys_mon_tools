@@ -31,6 +31,7 @@ AM_CFLAGS = \
 	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/rdk/iarmmgrs/receiver \
 	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/rdk/iarmmgrs/sysmgr \
 	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/rdk/devicesettings/rpc/include \
+	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/rdk/rdk-halif-device_settings/include \
 	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/WPEFramework/powercontroller \
 	-L$(PKG_CONFIG_SYSROOT_DIR)/usr/lib/
 
