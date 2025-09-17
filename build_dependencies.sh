@@ -18,6 +18,11 @@ git clone https://github.com/rdkcentral/iarmmgrs.git
 export IARMBUS_PATH=$ROOT/iarmbus
 export IARMMGRS_PATH=$ROOT/iarmmgrs
 
+
+cd $ROOT
+rm -rf devicesettings
+git clone https://github.com/rdkcentral/devicesettings.git
+
 # Build and deploy stubs for IARMBus
 echo "Building IARMBus stubs"
 cd $WORKDIR
