@@ -630,11 +630,11 @@ static void handleHdmiVrrEvent(ArgValue *args)
 
 static void handleCompositeInHotPlug(ArgValue *args)
 {
-	int port       = INT_ARG(0);
-    bool enabled   = BOOL_ARG(1);
+    int port = INT_ARG(0);
+    bool isPortConnected  = BOOL_ARG(1);
 
-    g_message("handleCompositeInHotPlug: port=%d, enabled=%s",
-              port, enabled ? "true" : "false");
+    g_message("handleCompositeInHotPlug: port=%d, isPortConnected=%s",
+              port, isPortConnected ? "true" : "false");
     IARM_Bus_DSMgr_EventData_t composite_in_hpd_eventData;
 	composite_in_hpd_eventData.data.composite_in_connect.port = port;
     composite_in_hpd_eventData.data.composite_in_connect.isPortConnected = isPortConnected;
@@ -648,7 +648,7 @@ static void handleCompositeInHotPlug(ArgValue *args)
 
 static void handleCompositeInSignalStatus(ArgValue *args)
 {
-	int port       = INT_ARG(0);
+    int port        = INT_ARG(0);
     int sigStatus   = INT_ARG(1);
 
     g_message("handleCompositeInSignalStatus: port=%d, sigStatus=%d", port, sigStatus);
@@ -665,7 +665,7 @@ static void handleCompositeInSignalStatus(ArgValue *args)
 
 static void handleCompositeInStatus(ArgValue *args)
 {
-	int port       = INT_ARG(0);
+    int port           = INT_ARG(0);
     bool isPresented   = BOOL_ARG(1);
 
     g_message("handleCompositeInStatus: port=%d, enabled=%s",
@@ -683,7 +683,7 @@ static void handleCompositeInStatus(ArgValue *args)
 
 static void handleCompositeInVideoModeUpdate(ArgValue *args)
 {
-	int port              = INT_ARG(0);
+    int port              = INT_ARG(0);
     int pixelResolution   = INT_ARG(1);
 
     g_message("handleCompositeInVideoModeUpdate: port=%d, pixelResolution=%d", port, pixelResolution);
