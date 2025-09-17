@@ -34,7 +34,7 @@ ifeq ($(USE_IARM_BUS),y)
 	IARM        = $(COMBINED_ROOT)/iarmbus
 	IARM_MGR    = $(COMBINED_ROOT)/iarmmgrs
 	IARM_CFLAGS = -I$(IARM)/core/include -I$(DFB_ROOT)/usr/local/include/directfb 
-	IARM_CFLAGS += -I$(IARM_MGR)/generic/ir/include -I$(IARM_MGR)/generic/hal/include -I$(IARM)/core/ 
+	IARM_CFLAGS += -I$(IARM_MGR)/generic/ir/include -I$(IARM_MGR)/generic/hal/include -I$(IARM)/core/ -I$(COMBINED_ROOT)/devicesettings/rpc/include/
 	IARM_LDFLAGS=-L$(IARM)/install/ -L$(DFB_LIB) -L$(OPENSOURCE_BASE)/lib  -L$(GLIB_LIBRARY_PATH)/
 ifeq ($(USE_DBUS),y)
        IARM_LIBS = -ldirect -ldbus-1 -lstdc++ -lfusion -lIARMBus -lpthread
