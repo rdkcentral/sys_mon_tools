@@ -124,12 +124,12 @@ static struct eventList{
 /* Table only used for IARM Events */
 
 static IARM_EventEntry iarmEventTable[] = {
-    { "IARM_HdmiAllmEvent",               2, { ARG_INT, ARG_INT  }, handleHdmiAllmEvent },
-    { "IARM_HdmiVrrEvent",                2, { ARG_INT, ARG_INT  }, handleHdmiVrrEvent },
-    { "IARM_CompositeInHotPlug",          2, { ARG_INT, ARG_BOOL }, handleCompositeInHotPlug },
-    { "IARM_CompositeInSignalStatus",     2, { ARG_INT, ARG_INT  }, handleCompositeInSignalStatus },
-    { "IARM_CompositeInStatus",           2, { ARG_INT, ARG_BOOL }, handleCompositeInStatus },
-    { "IARM_CompositeInVideoModeUpdate",  2, { ARG_INT, ARG_INT  }, handleCompositeInVideoModeUpdate },
+    { "DSMgr_HdmiAllmEvent",               2, { ARG_INT, ARG_INT  }, handleHdmiAllmEvent },
+    { "DSMgr_HdmiVrrEvent",                2, { ARG_INT, ARG_INT  }, handleHdmiVrrEvent },
+    { "DSMgr_CompositeInHotPlug",          2, { ARG_INT, ARG_BOOL }, handleCompositeInHotPlug },
+    { "DSMgr_CompositeInSignalStatus",     2, { ARG_INT, ARG_INT  }, handleCompositeInSignalStatus },
+    { "DSMgr_CompositeInStatus",           2, { ARG_INT, ARG_BOOL }, handleCompositeInStatus },
+    { "DSMgr_CompositeInVideoModeUpdate",  2, { ARG_INT, ARG_INT  }, handleCompositeInVideoModeUpdate },
 };
 static const int iarmEventTableSize = sizeof(iarmEventTable) / sizeof(iarmEventTable[0]);
 
@@ -152,7 +152,7 @@ int main(int argc,char *argv[])
         sendIARMEvent(currentEventName,eventStatus);
         return 0;
     }
-    else if (argc >= 2 && !strncmp(argv[1], "IARM_", 5)) {
+    else if (argc >= 2 && !strncmp(argv[1], "DSMgr_", 5)) {
         handleIARMEvents(argc, argv);
     } 
     else if (argc == 4)
@@ -601,6 +601,10 @@ static void handleHdmiAllmEvent(ArgValue *args)
 
     g_message("HdmiAllmEvent: port=%d, allm_mode=%d", port, allm_mode);
 
+	IARM_Bus_Init("SimulateDSMgrEvent");
+	IARM_Bus_Connect();
+
+
     IARM_Bus_DSMgr_EventData_t eventData;
     eventData.data.hdmi_in_allm_mode.port = port;
     eventData.data.hdmi_in_allm_mode.allm_mode = allm_mode;
@@ -609,6 +613,10 @@ static void handleHdmiAllmEvent(ArgValue *args)
                             (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_HDMI_IN_ALLM_STATUS,
                             &eventData,
                             sizeof(eventData));
+	IARM_Bus_Disconnect();
+	IARM_Bus_Term();
+	g_message("IARM_event_sender closing \r\n");
+							
 }
 
 static void handleHdmiVrrEvent(ArgValue *args)
@@ -618,6 +626,9 @@ static void handleHdmiVrrEvent(ArgValue *args)
 
     g_message("handleHdmiVrrEvent: port=%d, vrr_status=%d", port, vrr_status);
 
+	IARM_Bus_Init("SimulateDSMgrEvent");
+	IARM_Bus_Connect();
+
     IARM_Bus_DSMgr_EventData_t hdmi_in_vrrMode_eventData;
     hdmi_in_vrrMode_eventData.data.hdmi_in_vrr_mode.port = port;
     hdmi_in_vrrMode_eventData.data.hdmi_in_vrr_mode.vrr_type = vrr_status;
@@ -626,6 +637,9 @@ static void handleHdmiVrrEvent(ArgValue *args)
                             (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_HDMI_IN_VRR_STATUS,
                             (void *)&hdmi_in_vrrMode_eventData,
                             sizeof(hdmi_in_vrrMode_eventData));
+	IARM_Bus_Disconnect();
+	IARM_Bus_Term();
+
 }
 
 static void handleCompositeInHotPlug(ArgValue *args)
@@ -635,6 +649,10 @@ static void handleCompositeInHotPlug(ArgValue *args)
 
     g_message("handleCompositeInHotPlug: port=%d, isPortConnected=%s",
               port, isPortConnected ? "true" : "false");
+
+	IARM_Bus_Init("SimulateDSMgrEvent");
+	IARM_Bus_Connect();
+
     IARM_Bus_DSMgr_EventData_t composite_in_hpd_eventData;
 	composite_in_hpd_eventData.data.composite_in_connect.port = port;
     composite_in_hpd_eventData.data.composite_in_connect.isPortConnected = isPortConnected;
@@ -643,6 +661,9 @@ static void handleCompositeInHotPlug(ArgValue *args)
 	                        (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_HOTPLUG,
 	                        (void *)&composite_in_hpd_eventData,
 	                        sizeof(composite_in_hpd_eventData));
+	IARM_Bus_Disconnect();
+	IARM_Bus_Term();
+
 }
 
 
@@ -652,6 +673,10 @@ static void handleCompositeInSignalStatus(ArgValue *args)
     int sigStatus   = INT_ARG(1);
 
     g_message("handleCompositeInSignalStatus: port=%d, sigStatus=%d", port, sigStatus);
+
+	IARM_Bus_Init("SimulateDSMgrEvent");
+	IARM_Bus_Connect();
+
 	IARM_Bus_DSMgr_EventData_t composite_in_sigStatus_eventData;
     composite_in_sigStatus_eventData.data.composite_in_sig_status.port = port;
     composite_in_sigStatus_eventData.data.composite_in_sig_status.status = sigStatus;
@@ -660,6 +685,9 @@ static void handleCompositeInSignalStatus(ArgValue *args)
 			        (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS,
 			        (void *)&composite_in_sigStatus_eventData,
 			        sizeof(composite_in_sigStatus_eventData));
+	IARM_Bus_Disconnect();
+	IARM_Bus_Term();
+
 }
 
 
@@ -670,6 +698,9 @@ static void handleCompositeInStatus(ArgValue *args)
 
     g_message("handleCompositeInStatus: port=%d, enabled=%s",
               port, isPresented ? "true" : "false");
+	IARM_Bus_Init("SimulateDSMgrEvent");
+	IARM_Bus_Connect();
+
 	IARM_Bus_DSMgr_EventData_t hdmi_in_status_eventData;
     hdmi_in_status_eventData.data.composite_in_status.port = port;
     hdmi_in_status_eventData.data.composite_in_status.isPresented = isPresented;
@@ -678,6 +709,9 @@ static void handleCompositeInStatus(ArgValue *args)
                                 (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS,
                                 (void *)&hdmi_in_status_eventData,
                                 sizeof(hdmi_in_status_eventData));
+	IARM_Bus_Disconnect();
+	IARM_Bus_Term();
+
 }
 
 
@@ -687,6 +721,9 @@ static void handleCompositeInVideoModeUpdate(ArgValue *args)
     int pixelResolution   = INT_ARG(1);
 
     g_message("handleCompositeInVideoModeUpdate: port=%d, pixelResolution=%d", port, pixelResolution);
+	IARM_Bus_Init("SimulateDSMgrEvent");
+	IARM_Bus_Connect();
+
     IARM_Bus_DSMgr_EventData_t composite_in_videoMode_eventData;
     composite_in_videoMode_eventData.data.composite_in_video_mode.port = port;
     composite_in_videoMode_eventData.data.composite_in_video_mode.resolution.pixelResolution = pixelResolution;
@@ -697,6 +734,8 @@ static void handleCompositeInVideoModeUpdate(ArgValue *args)
                                 (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_VIDEO_MODE_UPDATE,
                                 (void *)&composite_in_videoMode_eventData,
                                 sizeof(composite_in_videoMode_eventData));
+	IARM_Bus_Disconnect();
+	IARM_Bus_Term();
 }
 
 
@@ -741,7 +780,7 @@ static void handleIARMEvents(int argc, char *argv[])
             return;
         }
     }
-    g_message("Error: Unknown IARM event: %s\n", eventName);
+    g_message("Error: Unknown IARM DSMgr event: %s\n", eventName);
 	printUsage(argv[0]);
 }
 
@@ -749,7 +788,7 @@ static void handleIARMEvents(int argc, char *argv[])
 static void printUsage(const char *prog)
 {
     g_message("Usage Applicable only for IARM Events:\n");
-    g_message("  %s IARM_HdmiAllmEvent <port> <allm_mode>\n", prog);
-    g_message("  %s IARM_FeatureToggleEvent <featureId> <true|false>\n", prog);
-    g_message("  %s IARM_AnotherEvent <port> <mode>\n", prog);
+    g_message("  %s DSMgr_HdmiAllmEvent <port> <allm_mode>\n", prog);
+    g_message("  %s DSMgr_CompositeInHotPlug <port> <true|false>\n", prog);
+    g_message("  %s DSMgr_CompositeInSignalStatus <port> <value>\n", prog);
 }
