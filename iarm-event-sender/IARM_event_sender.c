@@ -93,10 +93,15 @@ static void handleIARMEvents(int argc, char *argv[]);
 
 static void handleHdmiAllmEvent(ArgValue *args);
 static void handleHdmiVrrEvent(ArgValue *args);
-static void handleCompositeInHotPlug(ArgValue *args);
-static void handleCompositeInSignalStatus(ArgValue *args);
+static void handleHdmiInSignalStatus(ArgValue *args);
+static void handleHdmiInHotPlug(ArgValue *args);
+static void handleHdmiInStatus(ArgValue *args);
+static void handleHdmiInVideoModeUpdate(ArgValue *args);
 static void handleCompositeInVideoModeUpdate(ArgValue *args);
 static void handleCompositeInStatus(ArgValue *args);
+static void handleCompositeInSignalStatus(ArgValue *args);
+static void handleCompositeInHotPlug(ArgValue *args);
+static void handleHdmiInAviContentType(ArgValue *args);
 
 
 IARM_Result_t sendIARMEvent(GString* currentEventName, unsigned char eventStatus);
@@ -124,14 +129,21 @@ static struct eventList{
 /* Table only used for IARM Events */
 
 static IARM_EventEntry iarmEventTable[] = {
-    { "DSMgr_HdmiAllmEvent",               2, { ARG_INT, ARG_INT  }, handleHdmiAllmEvent },
-    { "DSMgr_HdmiVrrEvent",                2, { ARG_INT, ARG_INT  }, handleHdmiVrrEvent },
     { "DSMgr_CompositeInHotPlug",          2, { ARG_INT, ARG_BOOL }, handleCompositeInHotPlug },
     { "DSMgr_CompositeInSignalStatus",     2, { ARG_INT, ARG_INT  }, handleCompositeInSignalStatus },
     { "DSMgr_CompositeInStatus",           2, { ARG_INT, ARG_BOOL }, handleCompositeInStatus },
-    { "DSMgr_CompositeInVideoModeUpdate",  2, { ARG_INT, ARG_INT  }, handleCompositeInVideoModeUpdate },
+    { "DSMgr_CompositeInVideoModeUpdate",  4, { ARG_INT, ARG_INT, ARG_INT, ARG_INT }, handleCompositeInVideoModeUpdate },
+    { "DSMgr_HdmiInVideoModeUpdate",       4, { ARG_INT, ARG_INT, ARG_INT, ARG_INT }, handleHdmiInVideoModeUpdate },
+    { "DSMgr_HdmiAllmEvent",               2, { ARG_INT, ARG_INT  }, handleHdmiAllmEvent },
+    { "DSMgr_HdmiVrrEvent",                2, { ARG_INT, ARG_INT  }, handleHdmiVrrEvent },
+    { "DSMgr_HdmiInStatus",                2, { ARG_INT, ARG_BOOL }, handleHdmiInStatus },
+    { "DSMgr_HdmiInSignalStatus",          2, { ARG_INT, ARG_INT  }, handleHdmiInSignalStatus },
+    { "DSMgr_HdmiInHotPlug",               2, { ARG_INT, ARG_BOOL }, handleHdmiInHotPlug },
+    { "DSMgr_HdmiInAviContentType",        2, { ARG_INT, ARG_INT  }, handleHdmiInAviContentType },
 };
 static const int iarmEventTableSize = sizeof(iarmEventTable) / sizeof(iarmEventTable[0]);
+
+
 
 
 #define EVENT_INTRUSION "IntrusionEvent"
@@ -261,9 +273,11 @@ int main(int argc,char *argv[])
     }
     else
     {
-        g_message("Usage: %s <event name > <event status> \n",argv[0]);
-        g_message("Usage: %s CustomEvent <event stateId> <event state> <event error> \n",argv[0]);
+        g_message("-----------------------------------------------------------------\n");
+        g_message("Normal Usage: %s <event name > <event status> \n",argv[0]);
+        g_message("Custom Usage: %s CustomEvent <event stateId> <event state> <event error> \n",argv[0]);
         g_message("(%d)\n",argc );
+        g_message("-----------------------------------------------------------------\n");
         printUsage(argv[0]);
         return 1;
     }
@@ -594,53 +608,6 @@ static bool parseArg(const char *arg, ArgType type, ArgValue *out)
 }
 
 
-static void handleHdmiAllmEvent(ArgValue *args)
-{
-    int port      = INT_ARG(0);
-    int allm_mode = INT_ARG(1);
-
-    g_message("HdmiAllmEvent: port=%d, allm_mode=%d", port, allm_mode);
-
-	IARM_Bus_Init("SimulateDSMgrEvent");
-	IARM_Bus_Connect();
-
-
-    IARM_Bus_DSMgr_EventData_t eventData;
-    eventData.data.hdmi_in_allm_mode.port = port;
-    eventData.data.hdmi_in_allm_mode.allm_mode = allm_mode;
-
-    IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
-                            (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_HDMI_IN_ALLM_STATUS,
-                            &eventData,
-                            sizeof(eventData));
-	IARM_Bus_Disconnect();
-	IARM_Bus_Term();
-	g_message("IARM_event_sender closing \r\n");
-							
-}
-
-static void handleHdmiVrrEvent(ArgValue *args)
-{
-    int port       = INT_ARG(0);
-    int vrr_status = INT_ARG(1);
-
-    g_message("handleHdmiVrrEvent: port=%d, vrr_status=%d", port, vrr_status);
-
-	IARM_Bus_Init("SimulateDSMgrEvent");
-	IARM_Bus_Connect();
-
-    IARM_Bus_DSMgr_EventData_t hdmi_in_vrrMode_eventData;
-    hdmi_in_vrrMode_eventData.data.hdmi_in_vrr_mode.port = port;
-    hdmi_in_vrrMode_eventData.data.hdmi_in_vrr_mode.vrr_type = vrr_status;
-
-    IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
-                            (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_HDMI_IN_VRR_STATUS,
-                            (void *)&hdmi_in_vrrMode_eventData,
-                            sizeof(hdmi_in_vrrMode_eventData));
-	IARM_Bus_Disconnect();
-	IARM_Bus_Term();
-
-}
 
 static void handleCompositeInHotPlug(ArgValue *args)
 {
@@ -650,20 +617,19 @@ static void handleCompositeInHotPlug(ArgValue *args)
     g_message("handleCompositeInHotPlug: port=%d, isPortConnected=%s",
               port, isPortConnected ? "true" : "false");
 
-	IARM_Bus_Init("SimulateDSMgrEvent");
-	IARM_Bus_Connect();
-
     IARM_Bus_DSMgr_EventData_t composite_in_hpd_eventData;
+    memset(&composite_in_hpd_eventData, 0, sizeof(composite_in_hpd_eventData));
 	composite_in_hpd_eventData.data.composite_in_connect.port = port;
     composite_in_hpd_eventData.data.composite_in_connect.isPortConnected = isPortConnected;
 
-    IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
 	                        (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_HOTPLUG,
 	                        (void *)&composite_in_hpd_eventData,
 	                        sizeof(composite_in_hpd_eventData));
-	IARM_Bus_Disconnect();
-	IARM_Bus_Term();
-
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
 }
 
 
@@ -674,22 +640,20 @@ static void handleCompositeInSignalStatus(ArgValue *args)
 
     g_message("handleCompositeInSignalStatus: port=%d, sigStatus=%d", port, sigStatus);
 
-	IARM_Bus_Init("SimulateDSMgrEvent");
-	IARM_Bus_Connect();
-
 	IARM_Bus_DSMgr_EventData_t composite_in_sigStatus_eventData;
+    memset(&composite_in_sigStatus_eventData, 0, sizeof(composite_in_sigStatus_eventData));
     composite_in_sigStatus_eventData.data.composite_in_sig_status.port = port;
     composite_in_sigStatus_eventData.data.composite_in_sig_status.status = sigStatus;
 
-	IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+	IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
 			        (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS,
 			        (void *)&composite_in_sigStatus_eventData,
 			        sizeof(composite_in_sigStatus_eventData));
-	IARM_Bus_Disconnect();
-	IARM_Bus_Term();
-
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
 }
-
 
 static void handleCompositeInStatus(ArgValue *args)
 {
@@ -698,46 +662,215 @@ static void handleCompositeInStatus(ArgValue *args)
 
     g_message("handleCompositeInStatus: port=%d, enabled=%s",
               port, isPresented ? "true" : "false");
-	IARM_Bus_Init("SimulateDSMgrEvent");
-	IARM_Bus_Connect();
 
 	IARM_Bus_DSMgr_EventData_t hdmi_in_status_eventData;
+    memset(&hdmi_in_status_eventData, 0, sizeof(hdmi_in_status_eventData));
     hdmi_in_status_eventData.data.composite_in_status.port = port;
     hdmi_in_status_eventData.data.composite_in_status.isPresented = isPresented;
 
-    IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
                                 (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS,
                                 (void *)&hdmi_in_status_eventData,
                                 sizeof(hdmi_in_status_eventData));
-	IARM_Bus_Disconnect();
-	IARM_Bus_Term();
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
 
 }
-
 
 static void handleCompositeInVideoModeUpdate(ArgValue *args)
 {
     int port              = INT_ARG(0);
     int pixelResolution   = INT_ARG(1);
+    int interlaced        = INT_ARG(2);
+    int frameRate         = INT_ARG(3);
 
-    g_message("handleCompositeInVideoModeUpdate: port=%d, pixelResolution=%d", port, pixelResolution);
-	IARM_Bus_Init("SimulateDSMgrEvent");
-	IARM_Bus_Connect();
-
+    g_message("handleCompositeInVideoModeUpdate: port=%d, pixelResolution=%d interlaced=%d frameRate=%d", port, pixelResolution, interlaced , frameRate);
     IARM_Bus_DSMgr_EventData_t composite_in_videoMode_eventData;
+    memset(&composite_in_videoMode_eventData, 0, sizeof(composite_in_videoMode_eventData));
     composite_in_videoMode_eventData.data.composite_in_video_mode.port = port;
     composite_in_videoMode_eventData.data.composite_in_video_mode.resolution.pixelResolution = pixelResolution;
-    //Temporary Values are filled and avoided multiple input paramaters
-    composite_in_videoMode_eventData.data.composite_in_video_mode.resolution.interlaced = 1;
-    composite_in_videoMode_eventData.data.composite_in_video_mode.resolution.frameRate = 90;
-    IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+    composite_in_videoMode_eventData.data.composite_in_video_mode.resolution.interlaced = interlaced;
+    composite_in_videoMode_eventData.data.composite_in_video_mode.resolution.frameRate = frameRate;
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
                                 (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_VIDEO_MODE_UPDATE,
                                 (void *)&composite_in_videoMode_eventData,
                                 sizeof(composite_in_videoMode_eventData));
-	IARM_Bus_Disconnect();
-	IARM_Bus_Term();
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+
 }
 
+
+static void handleHdmiAllmEvent(ArgValue *args)
+{
+    int port      = INT_ARG(0);
+    int allm_mode = INT_ARG(1);
+
+    g_message("HdmiAllmEvent: port=%d, allm_mode=%d", port, allm_mode);
+
+    IARM_Bus_DSMgr_EventData_t eventData;
+    memset(&eventData, 0, sizeof(eventData));
+    eventData.data.hdmi_in_allm_mode.port = port;
+    eventData.data.hdmi_in_allm_mode.allm_mode = allm_mode;
+
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                            (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_HDMI_IN_ALLM_STATUS,
+                            &eventData,
+                            sizeof(eventData));
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+
+}
+
+
+static void handleHdmiVrrEvent(ArgValue *args)
+{
+    int port       = INT_ARG(0);
+    int vrr_status = INT_ARG(1);
+
+    g_message("handleHdmiVrrEvent: port=%d, vrr_status=%d", port, vrr_status);
+
+    IARM_Bus_DSMgr_EventData_t hdmi_in_vrrMode_eventData;
+    memset(&hdmi_in_vrrMode_eventData, 0, sizeof(hdmi_in_vrrMode_eventData));
+    hdmi_in_vrrMode_eventData.data.hdmi_in_vrr_mode.port = port;
+    hdmi_in_vrrMode_eventData.data.hdmi_in_vrr_mode.vrr_type = vrr_status;
+
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                            (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_HDMI_IN_VRR_STATUS,
+                            (void *)&hdmi_in_vrrMode_eventData,
+                            sizeof(hdmi_in_vrrMode_eventData));
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+
+static void handleHdmiInVideoModeUpdate(ArgValue *args)
+{
+    int port              = INT_ARG(0);
+    int pixelResolution   = INT_ARG(1);
+    int interlaced        = INT_ARG(2);
+    int frameRate         = INT_ARG(3);
+
+    g_message("handleHdmiInVideoModeUpdate: port=%d, pixelResolution=%d interlaced=%d frameRate=%d", port, pixelResolution, interlaced , frameRate);
+	IARM_Bus_DSMgr_EventData_t hdmi_in_videoMode_eventData;
+    memset(&hdmi_in_videoMode_eventData, 0, sizeof(hdmi_in_videoMode_eventData));
+    hdmi_in_videoMode_eventData.data.hdmi_in_video_mode.port = port;
+    hdmi_in_videoMode_eventData.data.hdmi_in_video_mode.resolution.pixelResolution = pixelResolution;
+    hdmi_in_videoMode_eventData.data.hdmi_in_video_mode.resolution.interlaced = interlaced;
+    hdmi_in_videoMode_eventData.data.hdmi_in_video_mode.resolution.frameRate = frameRate;
+
+
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                                (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE,
+                                (void *)&hdmi_in_videoMode_eventData,
+                                sizeof(hdmi_in_videoMode_eventData));
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+
+static void handleHdmiInStatus(ArgValue *args)
+{
+    int port           = INT_ARG(0);
+    bool isPresented   = BOOL_ARG(1);
+
+    g_message("handleHdmiInStatus: port=%d, isPresented=%s",
+              port, isPresented ? "true" : "false");
+
+    IARM_Bus_DSMgr_EventData_t hdmi_in_status_eventData;
+    memset(&hdmi_in_status_eventData, 0, sizeof(hdmi_in_status_eventData));
+	hdmi_in_status_eventData.data.hdmi_in_status.port = port;
+    hdmi_in_status_eventData.data.hdmi_in_status.isPresented = isPresented;
+
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                                (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS,
+                                (void *)&hdmi_in_status_eventData,
+                                sizeof(hdmi_in_status_eventData));
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+
+static void handleHdmiInSignalStatus(ArgValue *args)
+{
+    int port        = INT_ARG(0);
+    int sigStatus   = INT_ARG(1);
+
+    g_message("handleHdmiInSignalStatus: port=%d, sigStatus=%d", port, sigStatus);
+
+    IARM_Bus_DSMgr_EventData_t hdmi_in_sigStatus_eventData;
+    memset(&hdmi_in_sigStatus_eventData, 0, sizeof(hdmi_in_sigStatus_eventData));
+    hdmi_in_sigStatus_eventData.data.hdmi_in_sig_status.port = port;
+    hdmi_in_sigStatus_eventData.data.hdmi_in_sig_status.status = sigStatus;
+
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+			        (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_HDMI_IN_SIGNAL_STATUS,
+			        (void *)&hdmi_in_sigStatus_eventData,
+			        sizeof(hdmi_in_sigStatus_eventData));					
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+
+}
+
+
+static void handleHdmiInHotPlug(ArgValue *args)
+{
+    int port           = INT_ARG(0);
+    bool isPlugged     = BOOL_ARG(1);
+
+    g_message("handleHdmiInHotPlug: port=%d, isPlugged=%s",
+              port, isPlugged ? "true" : "false");
+    IARM_Bus_DSMgr_EventData_t hdmi_in_hpd_eventData;
+    memset(&hdmi_in_hpd_eventData, 0, sizeof(hdmi_in_hpd_eventData));
+    hdmi_in_hpd_eventData.data.hdmi_in_connect.port = port;
+    hdmi_in_hpd_eventData.data.hdmi_in_connect.isPortConnected = isPlugged;
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+	                        (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG,
+	                        (void *)&hdmi_in_hpd_eventData,
+	                        sizeof(hdmi_in_hpd_eventData));
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+
+static void handleHdmiInAviContentType(ArgValue *args)
+{
+    int port                = INT_ARG(0);
+    int avi_content_type    = INT_ARG(1);
+
+    g_message("handleHdmiInAviContentType: port=%d, avi_content_type=%d", port, avi_content_type);
+
+	IARM_Bus_DSMgr_EventData_t hdmi_in_contentType_eventData;
+
+    memset(&hdmi_in_contentType_eventData, 0, sizeof(hdmi_in_contentType_eventData));
+    hdmi_in_contentType_eventData.data.hdmi_in_content_type.port = port;
+    hdmi_in_contentType_eventData.data.hdmi_in_content_type.aviContentType = avi_content_type;
+
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                                (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE,
+                                (void *)&hdmi_in_contentType_eventData,
+                                sizeof(hdmi_in_contentType_eventData));
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
 
 
 
@@ -776,7 +909,11 @@ static void handleIARMEvents(int argc, char *argv[])
                     case ARG_STRING: g_message("  Arg[%d] STR  = %s\n", j, args[j].val.s); break;
                 }
             }
+            IARM_Bus_Init("SimulateDSMgrEvent");
+            IARM_Bus_Connect();
             entry->handler(args);
+            IARM_Bus_Disconnect();
+            IARM_Bus_Term();
             return;
         }
     }
@@ -788,7 +925,14 @@ static void handleIARMEvents(int argc, char *argv[])
 static void printUsage(const char *prog)
 {
     g_message("Usage Applicable only for IARM Events:\n");
+    g_message("  %s DSMgr_CompositeInHotPlug <port> <true/false>\n", prog);
+    g_message("  %s DSMgr_CompositeInSignalStatus <port> <signalvalue>\n", prog);
+    g_message("  %s DSMgr_CompositeInStatus <port> <true/false>\n", prog);
+    g_message("  %s DSMgr_CompositeInVideoModeUpdate <port> <pixelresolution> <interlaced> <frameRate>\n", prog);
     g_message("  %s DSMgr_HdmiAllmEvent <port> <allm_mode>\n", prog);
-    g_message("  %s DSMgr_CompositeInHotPlug <port> <true|false>\n", prog);
-    g_message("  %s DSMgr_CompositeInSignalStatus <port> <value>\n", prog);
+    g_message("  %s DSMgr_HdmiInVideoModeUpdate <port> <pixelresolution> <interlaced> <frameRate> \n", prog);
+    g_message("  %s DSMgr_HdmiVrrEvent <port> <vrrvalue>\n", prog);
+    g_message("  %s DSMgr_HdmiInStatus <port> <ispresented>\n", prog);
+    g_message("  %s DSMgr_HdmiInSignalStatus <port> <signalvalue>\n", prog);
+    g_message("  %s DSMgr_HdmiInHotPlug <port> <true/false>\n", prog);
 }
