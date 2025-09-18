@@ -18,11 +18,21 @@ git clone https://github.com/rdkcentral/iarmmgrs.git
 export IARMBUS_PATH=$ROOT/iarmbus
 export IARMMGRS_PATH=$ROOT/iarmmgrs
 
+
+cd $ROOT
+rm -rf devicesettings
+git clone https://github.com/rdkcentral/devicesettings.git
+
+
+cd $ROOT
+rm -rf rdk-halif-device_settings
+git clone https://github.com/rdkcentral/rdk-halif-device_settings.git
+
 # Build and deploy stubs for IARMBus
 echo "Building IARMBus stubs"
 cd $WORKDIR
 cd ./stubs
-g++ -fPIC -shared -o libIARMBus.so iarm_stubs.cpp -I$WORKDIR/stubs -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I$IARMBUS_PATH/core -I$IARMBUS_PATH/core/include -fpermissive
+g++ -fPIC -shared -o libIARMBus.so iarm_stubs.cpp -I$WORKDIR/stubs -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I$IARMBUS_PATH/core -I$IARMBUS_PATH/core/include -I$ROOT/devicesettings/rpc/include -I$ROOT/rdk-halif-device_settings/include/ -fpermissive
 g++ -fPIC -shared -o libWPEFrameworkPowerController.so powerctrl_stubs.cpp  -I$WORKDIR/stubs -fpermissive
 
 
