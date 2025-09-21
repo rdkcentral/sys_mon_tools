@@ -102,7 +102,23 @@ static void handleCompositeInStatus(ArgValue *args);
 static void handleCompositeInSignalStatus(ArgValue *args);
 static void handleCompositeInHotPlug(ArgValue *args);
 static void handleHdmiInAviContentType(ArgValue *args);
-
+static void handleAudioOutHotPlug(ArgValue *args);
+static void handleAudioFormatUpdate(ArgValue *args);
+static void handleAudioSecondaryLanguageChanged(ArgValue *args);
+static void handleAudioPrimaryLanguageChanged(ArgValue *args);
+static void handleAudioFaderControl(ArgValue *args);
+static void handleAudioPortState(ArgValue *args);
+static void handleAudioMode(ArgValue *args);
+static void handleDisplayFrameRatePreChange(ArgValue *args);
+static void handleDisplayFrameRatePostChange(ArgValue *args);
+static void handleAtmosCapsChanged(ArgValue *args);
+static void handleEventRxSense(ArgValue *args);
+static void handleHdmiHotPlug(ArgValue *args);
+static void handleAudioLevelChanged(ArgValue *args);
+static void handleVideoFormatUdate(ArgValue *args);
+static void handleDisplayResolutionPreChange(ArgValue *args);
+static void handleDisplayResolutionPostChange(ArgValue *args);
+static void handleHdmiInAvLatency(ArgValue *args);
 
 IARM_Result_t sendIARMEvent(GString* currentEventName, unsigned char eventStatus);
 IARM_Result_t sendIARMEventPayload(GString* currentEventName, char *eventPayload);
@@ -129,22 +145,59 @@ static struct eventList{
 /* Table only used for IARM Events */
 
 static IARM_EventEntry iarmEventTable[] = {
-    { "DSMgr_CompositeInHotPlug",          2, { ARG_INT, ARG_BOOL }, handleCompositeInHotPlug },
-    { "DSMgr_CompositeInSignalStatus",     2, { ARG_INT, ARG_INT  }, handleCompositeInSignalStatus },
-    { "DSMgr_CompositeInStatus",           2, { ARG_INT, ARG_BOOL }, handleCompositeInStatus },
-    { "DSMgr_CompositeInVideoModeUpdate",  4, { ARG_INT, ARG_INT, ARG_INT, ARG_INT }, handleCompositeInVideoModeUpdate },
-    { "DSMgr_HdmiInVideoModeUpdate",       4, { ARG_INT, ARG_INT, ARG_INT, ARG_INT }, handleHdmiInVideoModeUpdate },
-    { "DSMgr_HdmiAllmEvent",               2, { ARG_INT, ARG_INT  }, handleHdmiAllmEvent },
-    { "DSMgr_HdmiVrrEvent",                2, { ARG_INT, ARG_INT  }, handleHdmiVrrEvent },
-    { "DSMgr_HdmiInStatus",                2, { ARG_INT, ARG_BOOL }, handleHdmiInStatus },
-    { "DSMgr_HdmiInSignalStatus",          2, { ARG_INT, ARG_INT  }, handleHdmiInSignalStatus },
-    { "DSMgr_HdmiInHotPlug",               2, { ARG_INT, ARG_BOOL }, handleHdmiInHotPlug },
-    { "DSMgr_HdmiInAviContentType",        2, { ARG_INT, ARG_INT  }, handleHdmiInAviContentType },
+    { "DSMgr_CompositeInHotPlug",            2, { ARG_INT, ARG_BOOL }, handleCompositeInHotPlug },
+    { "DSMgr_CompositeInSignalStatus",       2, { ARG_INT, ARG_INT  }, handleCompositeInSignalStatus },
+    { "DSMgr_CompositeInStatus",             2, { ARG_INT, ARG_BOOL }, handleCompositeInStatus },
+    { "DSMgr_CompositeInVideoModeUpdate",    4, { ARG_INT, ARG_INT, ARG_INT, ARG_INT }, handleCompositeInVideoModeUpdate },
+    { "DSMgr_HdmiInVideoModeUpdate",         4, { ARG_INT, ARG_INT, ARG_INT, ARG_INT }, handleHdmiInVideoModeUpdate },
+    { "DSMgr_HdmiAllmEvent",                 2, { ARG_INT, ARG_INT  }, handleHdmiAllmEvent },
+    { "DSMgr_HdmiVrrEvent",                  2, { ARG_INT, ARG_INT  }, handleHdmiVrrEvent },
+    { "DSMgr_HdmiInStatus",                  2, { ARG_INT, ARG_BOOL }, handleHdmiInStatus },
+    { "DSMgr_HdmiInSignalStatus",            2, { ARG_INT, ARG_INT  }, handleHdmiInSignalStatus },
+    { "DSMgr_HdmiInHotPlug",                 2, { ARG_INT, ARG_BOOL }, handleHdmiInHotPlug },
+    { "DSMgr_HdmiInAviContentType",          2, { ARG_INT, ARG_INT  }, handleHdmiInAviContentType },
+    { "DSMgr_AudioOutHotPlug",               3, { ARG_INT, ARG_INT, ARG_BOOL}, handleAudioOutHotPlug },
+    { "DSMgr_AudioFormatUpdate",             1, { ARG_INT}, handleAudioFormatUpdate },
+    { "DSMgr_AudioSecondaryLanguageChanged", 1, { ARG_STRING}, handleAudioSecondaryLanguageChanged },
+    { "DSMgr_AudioPrimaryLanguageChanged",   1, { ARG_STRING}, handleAudioPrimaryLanguageChanged },
+    { "DSMgr_AudioFaderControl",             1, { ARG_INT}, handleAudioFaderControl },
+    { "DSMgr_AudioMixingChanged",            1, { ARG_INT}, handleAudioMixingChanged },
+    { "DSMgr_AudioPortState",                1, { ARG_INT}, handleAudioPortState },
+    { "DSMgr_AudioMode",                     2, { ARG_INT, ARG_INT  }, handleAudioMode },
+    { "DSMgr_DisplayFrameRatePreChange",     1, { ARG_STRING}, handleDisplayFrameRatePreChange },
+    { "DSMgr_DisplayFrameRatePostChange",    1, { ARG_STRING}, handleDisplayFrameRatePostChange },
+    { "DSMgr_AtmosCapsChanged",              2, { ARG_INT, ARG_BOOL}, handleAtmosCapsChanged },
+    { "DSMgr_EventRxSense",                  1, { ARG_INT }, handleEventRxSense },
+    { "DSMgr_EventZoomSettings",             1, { ARG_INT }, handleEventZoomSetting },
+    { "DSMgr_HdmiHotPlug",                   1, { ARG_BOOL }, handleHdmiHotPlug },
+    { "DSMgr_AudioLevelChanged",             1, { ARG_INT }, handleAudioLevelChanged },
+    { "DSMgr_VideoFormatUdate",              1, { ARG_INT }, handleVideoFormatUdate },
+    { "DSMgr_DisplayResolutionPreChange",    2, { ARG_INT, ARG_INT }, handleDisplayResolutionPreChange },
+    { "DSMgr_DisplayResolutionPostChange",   2, { ARG_INT, ARG_INT }, handleDisplayResolutionPostChange },
+    { "DSMgr_HdmiInAvLatency",               2, { ARG_INT, ARG_INT }, handleHdmiInAvLatency },		
 };
 static const int iarmEventTableSize = sizeof(iarmEventTable) / sizeof(iarmEventTable[0]);
 
 
 
+/*
+
+Usage Applicable only for IARM Events:
+ 
+IARM_event_sender DSMgr_CompositeInHotPlug <port> <true/false>
+IARM_event_sender DSMgr_CompositeInSignalStatus <port> <signalvalue>
+IARM_event_sender DSMgr_CompositeInStatus <port> <true/false>
+IARM_event_sender DSMgr_CompositeInVideoModeUpdate <port> <pixelresolution> <interlaced> <frameRate>
+IARM_event_sender DSMgr_HdmiAllmEvent <port> <allm_mode>
+IARM_event_sender DSMgr_HdmiInVideoModeUpdate <port> <pixelresolution> <interlaced> <frameRate>
+IARM_event_sender DSMgr_HdmiVrrEvent <port> <vrrvalue>
+IARM_event_sender DSMgr_HdmiInStatus <port> <ispresented>
+IARM_event_sender DSMgr_HdmiInSignalStatus <port> <signalvalue>
+IARM_event_sender DSMgr_HdmiInHotPlug <port> <true/false>
+IARM_event_sender DSMgr_HdmiInAviContentType <port> <avi_content_type>
+ 
+*/
+ 
 
 #define EVENT_INTRUSION "IntrusionEvent"
 #define INTRU_ABREV '+' // last character for abreviated buffer
@@ -849,6 +902,27 @@ static void handleHdmiInHotPlug(ArgValue *args)
 }
 
 
+static void handleHdmiHotPlug(ArgValue *args)
+{
+    bool isPlugged     = BOOL_ARG(0);
+
+    g_message("handleHdmiHotPlug: port=%d, isPlugged=%s",
+              port, isPlugged ? "true" : "false");
+    IARM_Bus_DSMgr_EventData_t hdmi_in_hpd_eventData;
+    memset(&hdmi_in_hpd_eventData, 0, sizeof(hdmi_in_hpd_eventData));
+
+	hdmi_in_hpd_eventData.data.hdmi_hpd.event =  isPlugged;
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+	                        (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG,
+	                        (void *)&hdmi_in_hpd_eventData,
+	                        sizeof(hdmi_in_hpd_eventData));
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+
 static void handleHdmiInAviContentType(ArgValue *args)
 {
     int port                = INT_ARG(0);
@@ -872,6 +946,361 @@ static void handleHdmiInAviContentType(ArgValue *args)
     }
 }
 
+
+static void handleAudioOutHotPlug(ArgValue *args)
+{
+    int port_type           = INT_ARG(0);
+    int port                = INT_ARG(1);
+    bool isPortConnected    = BOOL_ARG(2);
+
+    g_message("handleAudioOutHotPlug: port_type=%d, port=%d isPortConnected=%s",
+                                port_type, port, isPortConnected ? "true" : "false");
+
+    IARM_Bus_DSMgr_EventData_t audio_out_hpd_eventData;
+    memset(&audio_out_hpd_eventData, 0, sizeof(audio_out_hpd_eventData));
+    audio_out_hpd_eventData.data.audio_out_connect.portType = portType;
+    audio_out_hpd_eventData.data.audio_out_connect.uiPortNo = uiPortNo;
+    audio_out_hpd_eventData.data.audio_out_connect.isPortConnected = isPortConnected;
+        
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                           (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG,
+                           (void *)&audio_out_hpd_eventData, 
+                           sizeof(audio_out_hpd_eventData));
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+
+static void handleAudioFormatUpdate(ArgValue *args)
+{
+    int audioFormat         = INT_ARG(0);
+
+    g_message("handleAudioFormatUpdate: audioFormat=%d", audioFormat);
+
+    IARM_Bus_DSMgr_EventData_t audio_format_event_data;	
+    memset(&audio_format_event_data, 0, sizeof(audio_format_event_data));	
+	
+    audio_format_event_data.data.AudioFormatInfo.audioFormat = audioFormat;
+
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                           (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE,
+                           (void *)&audio_format_event_data,
+                           sizeof(audio_format_event_data));	
+
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+
+static void handleAudioPrimaryLanguageChanged(ArgValue *args)
+{
+    const char *language = STR_ARG(0);	
+
+    g_message("handleAudioPrimaryLanguageChanged: language=%s", language);
+
+    IARM_Bus_DSMgr_EventData_t primary_language_event_data;
+    memset(&primary_language_event_data, 0, sizeof(primary_language_event_data));		
+    strncpy(primary_language_event_data.data.AudioLanguageInfo.audioLanguage, language, MAX_LANGUAGE_LEN-1);
+ 
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                                   (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_AUDIO_PRIMARY_LANGUAGE_CHANGED,
+                                   (void *)&primary_language_event_data,
+                                   sizeof(primary_language_event_data));
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+static void handleAudioSecondaryLanguageChanged(ArgValue *args)
+{
+    const char *language = STR_ARG(0);	
+
+    g_message("handleAudioSecondaryLanguageChanged: language=%s", language);
+
+    IARM_Bus_DSMgr_EventData_t secondary_language_event_data;
+    memset(&secondary_language_event_data, 0, sizeof(secondary_language_event_data));		
+    strncpy(secondary_language_event_data.data.AudioLanguageInfo.audioLanguage, language, MAX_LANGUAGE_LEN-1);
+ 
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                                   (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_AUDIO_SECONDARY_LANGUAGE_CHANGED,
+                                   (void *)&secondary_language_event_data,
+                                   sizeof(secondary_language_event_data));
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+
+static void handleAudioFaderControl(ArgValue *args)
+{
+    int audioFader         = INT_ARG(0);
+
+    g_message("handleAudioFaderControl: audioFormat=%d", audioFormat);
+
+    IARM_Bus_DSMgr_EventData_t fader_control_event_data;
+    memset(&fader_control_event_data, 0, sizeof(fader_control_event_data));	
+
+    fader_control_event_data.data.FaderControlInfo.mixerbalance = audioFader;
+
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                                   (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_AUDIO_FADER_CONTROL_CHANGED,
+                                   (void *)&fader_control_event_data,
+                                   sizeof(fader_control_event_data));
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+
+static void handleAudioMixingChanged(ArgValue *args)
+{
+    int audiomixval        = INT_ARG(0);
+
+    g_message("handleAudioMixingChanged: audiomixval=%d", audiomixval);
+
+    IARM_Bus_DSMgr_EventData_t associated_audio_mixing_event_data;
+    memset(&associated_audio_mixing_event_data, 0, sizeof(associated_audio_mixing_event_data));	
+    associated_audio_mixing_event_data.data.AssociatedAudioMixingInfo.mixing = audiomixval;
+
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                                   (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_AUDIO_ASSOCIATED_AUDIO_MIXING_CHANGED,
+                                   (void *)&associated_audio_mixing_event_data,
+                                   sizeof(associated_audio_mixing_event_data));
+
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+
+static void handleAudioPortState(ArgValue *args)
+{
+    int audioportstate        = INT_ARG(0);
+
+    g_message("handleAudioPortState: audioportstate=%d", audiomixval);
+
+    IARM_Bus_DSMgr_EventData_t audio_portstate_event_data;
+    memset(&audio_portstate_event_data, 0, sizeof(audio_portstate_event_data));	
+	audio_portstate_event_data.data.AudioPortStateInfo.audioPortState = audioportstate;
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                           (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_AUDIO_PORT_STATE,
+                           (void *)&audio_portstate_event_data,
+                           sizeof(audio_portstate_event_data));
+						   
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+
+static void handleAudioMode(ArgValue *args)
+{
+    int audiomode       = INT_ARG(0);
+    int audiotype       = INT_ARG(1);
+	
+    g_message("handleAudioMode: audiomode=%d audiotype=%d", audiomode,audiotype);
+
+    IARM_Bus_DSMgr_EventData_t eventData;
+    memset(&eventData, 0, sizeof(eventData));	
+    eventData.data.Audioport.mode = audiomode;
+    eventData.data.Audioport.type = audiotype;
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,(IARM_EventId_t)IARM_BUS_DSMGR_EVENT_AUDIO_MODE,(void *)&eventData, sizeof(eventData));	   
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+static void handleDisplayFrameRatePreChange(ArgValue *args)
+{
+    const char *framerate = STR_ARG(0);	
+
+    g_message("handleDisplayFrameRatePreChange: framerate=%s", framerate);
+
+    IARM_Bus_DSMgr_EventData_t framerate_event_data;
+    memset(&framerate_event_data, 0, sizeof(framerate_event_data));		
+    /* The max value defined in the header file is 20 hard coded */
+    strncpy(framerate_event_data.data.DisplayFrameRateChange.framerate, framerate, 19);
+ 
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                                   (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_PRECHANGE,
+                                   (void *)&framerate_event_data,
+                                   sizeof(framerate_event_data));
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+
+static void handleDisplayFrameRatePostChange(ArgValue *args)
+{
+    const char *framerate = STR_ARG(0);	
+
+    g_message("handleDisplayFrameRatePostChange: framerate=%s", framerate);
+
+    IARM_Bus_DSMgr_EventData_t framerate_event_data;
+    memset(&framerate_event_data, 0, sizeof(framerate_event_data));		
+    /* The max value defined in the header file is 20 hard coded */
+    strncpy(framerate_event_data.data.DisplayFrameRateChange.framerate, framerate, 19);
+ 
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                                   (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_POSTCHANGE,
+                                   (void *)&framerate_event_data,
+                                   sizeof(framerate_event_data));
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+static void handleAtmosCapsChanged(ArgValue *args)
+{
+    int atmoscaps      = INT_ARG(0);
+    bool status        = BOOL_ARG(1);
+
+    g_message("handleAtmosCapsChanged: atmoscaps=%d, status=%s",
+              atmoscaps, status ? "true" : "false");
+
+    IARM_Bus_DSMgr_EventData_t atmos_caps_change_event_data;
+    memset(&atmos_caps_change_event_data, 0, sizeof(atmos_caps_change_event_data));
+    atmos_caps_change_event_data.data.AtmosCapsChange.caps = atmosCaps;
+    atmos_caps_change_event_data.data.AtmosCapsChange.status = status;
+
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                           (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_ATMOS_CAPS_CHANGED,
+                           (void *)&atmos_caps_change_event_data,
+                           sizeof(atmos_caps_change_event_data));
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+
+static void handleAudioLevelChanged(ArgValue *args)
+{
+    int audiolevel       = INT_ARG(0);
+
+    g_message("handleAudioLevelChanged: audiolevel=%d", audiolevel);
+
+    IARM_Bus_DSMgr_EventData_t audio_level_event_data;
+    memset(&audio_level_event_data, 0, sizeof(audio_level_event_data));	
+    audio_level_event_data.data.AudioLevelInfo.level = audiolevel;
+
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                                   (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_AUDIO_LEVEL_CHANGED,
+                                   (void *)&audio_level_event_data,
+                                   sizeof(audio_level_event_data));
+
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+
+static void handleVideoFormatUdate(ArgValue *args)
+{
+    int videoformat       = INT_ARG(0);
+
+    g_message("handleVideoFormatUdate: videoformat=%d", videoformat);
+
+    IARM_Bus_DSMgr_EventData_t video_format_event_data;
+    memset(&video_format_event_data, 0, sizeof(video_format_event_data));	
+    audio_level_event_data.data.VideoFormatInfo.videoFormat = videoformat;
+
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                                   (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_VIDEO_FORMAT_UPDATE,
+                                   (void *)&video_format_event_data,
+                                   sizeof(video_format_event_data));
+
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+
+static void handleDisplayResolutionPreChange(ArgValue *args)
+{
+    int height       = INT_ARG(0);
+    int width        = INT_ARG(1);
+
+    g_message("handleDisplayResolutionPreChange: height=%d width=%d", height,width);
+
+    IARM_Bus_DSMgr_EventData_t res_event_data;
+    memset(&res_event_data, 0, sizeof(res_event_data));		
+
+    res_event_data.data.resn.width = width;
+    res_event_data.data.resn.height = height;
+ 
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                                   (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_RES_PRECHANGE,
+                                   (void *)&res_event_data,
+                                   sizeof(res_event_data));
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+
+static void handleDisplayResolutionPostChange(ArgValue *args)
+{
+    int height       = INT_ARG(0);
+    int width        = INT_ARG(1);
+
+    g_message("handleDisplayResolutionPostChange: height=%d width=%d", height,width);
+
+    IARM_Bus_DSMgr_EventData_t res_event_data;
+    memset(&res_event_data, 0, sizeof(res_event_data));		
+
+    res_event_data.data.resn.width = width;
+    res_event_data.data.resn.height = height;
+
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                                   (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_RES_POSTCHANGE,
+                                   (void *)&res_event_data,
+                                   sizeof(res_event_data));
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+
+static void handleHdmiInAvLatency(ArgValue *args)
+{
+    int audio_op_delay        = INT_ARG(0);
+    int video_latency         = INT_ARG(1);
+
+    g_message("handleHdmiInAvLatency: height=%d width=%d", height,width);
+
+    IARM_Bus_DSMgr_EventData_t hdmi_in_av_latency_eventData;
+    memset(&hdmi_in_av_latency_eventData, 0, sizeof(hdmi_in_av_latency_eventData));		
+
+    hdmi_in_av_latency_eventData.data.hdmi_in_av_latency.audio_output_delay = audio_op_delay;
+    hdmi_in_av_latency_eventData.data.hdmi_in_av_latency.video_latency = video_latency;
+
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                                   (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_HDMI_IN_AV_LATENCY,
+                                   (void *)&hdmi_in_av_latency_eventData,
+                                   sizeof(hdmi_in_av_latency_eventData));
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }	
+}
 
 
 // -----------------------------
@@ -921,18 +1350,56 @@ static void handleIARMEvents(int argc, char *argv[])
 	printUsage(argv[0]);
 }
 
+static void handleEventRxSense(ArgValue *args)
+{
+    int rxsense        = INT_ARG(0);
+
+    g_message("handleAudioPortState: audioportstate=%d", audiomixval);
+
+    IARM_Bus_DSMgr_EventData_t rxsense_event_data;
+    memset(&rxsense_event_data, 0, sizeof(rxsense_event_data));	
+	rxsense_event_data.data.hdmi_rxsense.status = rxsense;
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                           (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_RX_SENSE,
+                           (void *)&rxsense_event_data,
+                           sizeof(rxsense_event_data));
+						   
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
 
 static void printUsage(const char *prog)
 {
     g_message("Usage Applicable only for IARM Events:\n");
-    g_message("  %s DSMgr_CompositeInHotPlug <port> <true/false>\n", prog);
-    g_message("  %s DSMgr_CompositeInSignalStatus <port> <signalvalue>\n", prog);
-    g_message("  %s DSMgr_CompositeInStatus <port> <true/false>\n", prog);
-    g_message("  %s DSMgr_CompositeInVideoModeUpdate <port> <pixelresolution> <interlaced> <frameRate>\n", prog);
-    g_message("  %s DSMgr_HdmiAllmEvent <port> <allm_mode>\n", prog);
-    g_message("  %s DSMgr_HdmiInVideoModeUpdate <port> <pixelresolution> <interlaced> <frameRate> \n", prog);
-    g_message("  %s DSMgr_HdmiVrrEvent <port> <vrrvalue>\n", prog);
-    g_message("  %s DSMgr_HdmiInStatus <port> <ispresented>\n", prog);
-    g_message("  %s DSMgr_HdmiInSignalStatus <port> <signalvalue>\n", prog);
-    g_message("  %s DSMgr_HdmiInHotPlug <port> <true/false>\n", prog);
+    g_message("  %s DSMgr_CompositeInHotPlug <port> <true/false>", prog);
+    g_message("  %s DSMgr_CompositeInSignalStatus <port> <signalvalue>", prog);
+    g_message("  %s DSMgr_CompositeInStatus <port> <true/false>", prog);
+    g_message("  %s DSMgr_CompositeInVideoModeUpdate <port> <pixelresolution> <interlaced> <frameRate>", prog);
+    g_message("  %s DSMgr_HdmiAllmEvent <port> <allm_mode>", prog);
+    g_message("  %s DSMgr_HdmiInVideoModeUpdate <port> <pixelresolution> <interlaced> <frameRate>", prog);
+    g_message("  %s DSMgr_HdmiVrrEvent <port> <vrrvalue>", prog);
+    g_message("  %s DSMgr_HdmiInStatus <port> <ispresented>", prog);
+    g_message("  %s DSMgr_HdmiInSignalStatus <port> <signalvalue>", prog);
+    g_message("  %s DSMgr_HdmiInHotPlug <port> <true/false>", prog);
+    g_message("  %s DSMgr_HdmiInAviContentType <port> <avi_content_type>", prog);
+    g_message("  %s DSMgr_AudioOutHotPlug <port_type> <port> <isconnected:true/false>", prog);
+    g_message("  %s DSMgr_AudioFormatUpdate <Audio_format>", prog);
+    g_message("  %s DSMgr_AudioPrimaryLanguageChanged <"lang string">", prog);
+    g_message("  %s DSMgr_AudioSecondaryLanguageChanged <"lang string">", prog);	
+    g_message("  %s DSMgr_AudioFaderControl <Audio_faderval>", prog);	
+    g_message("  %s DSMgr_AudioMixingChanged <Audio_mixingval>", prog);
+    g_message("  %s DSMgr_AudioPortState <Audio_PortStateVal>", prog);
+    g_message("  %s DSMgr_AudioMode <porttype> <audiomode>", prog);
+    g_message("  %s DSMgr_DisplayFrameRatePreChange <"framerate_string">", prog);
+    g_message("  %s DSMgr_DisplayFrameRatePostChange <"framerate_string">", prog);
+    g_message("  %s DSMgr_AtmosCapsChanged <atmosCaps> <true/false>", prog);
+    g_message("  %s DSMgr_EventRxSense <rxsense_value>", prog);	
+    g_message("  %s DSMgr_EventZoomSettings <zoom_value>", prog);
+    g_message("  %s DSMgr_handleHdmiHotPlug <true/false>", prog);
+    g_message("  %s DSMgr_AudioLevelChanged <audio_value>", prog);	
+    g_message("  %s DSMgr_VideoFormatUdate <video_format_value_in_binary_bit_position>", prog);
+    g_message("  %s DSMgr_HdmiInAvLatency <audio_output_delay> <video_latency>", prog);		
+
 }
