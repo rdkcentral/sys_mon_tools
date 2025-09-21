@@ -120,6 +120,7 @@ static void handleDisplayResolutionPreChange(ArgValue *args);
 static void handleDisplayResolutionPostChange(ArgValue *args);
 static void handleHdmiInAvLatency(ArgValue *args);
 static void handleAudioMixingChanged(ArgValue *args);
+static void handleEventZoomSetting(ArgValue *args);
 
 IARM_Result_t sendIARMEvent(GString* currentEventName, unsigned char eventStatus);
 IARM_Result_t sendIARMEventPayload(GString* currentEventName, char *eventPayload);
