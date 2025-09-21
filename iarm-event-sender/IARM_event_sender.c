@@ -1285,7 +1285,7 @@ static void handleHdmiInAvLatency(ArgValue *args)
     int audio_op_delay        = INT_ARG(0);
     int video_latency         = INT_ARG(1);
 
-    g_message("handleHdmiInAvLatency: height=%d width=%d", height,width);
+    g_message("handleHdmiInAvLatency: audio_op_delay=%d video_latency=%d", audio_op_delay,video_latency);
 
     IARM_Bus_DSMgr_EventData_t hdmi_in_av_latency_eventData;
     memset(&hdmi_in_av_latency_eventData, 0, sizeof(hdmi_in_av_latency_eventData));		
