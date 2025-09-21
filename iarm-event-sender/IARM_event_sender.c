@@ -119,6 +119,7 @@ static void handleVideoFormatUdate(ArgValue *args);
 static void handleDisplayResolutionPreChange(ArgValue *args);
 static void handleDisplayResolutionPostChange(ArgValue *args);
 static void handleHdmiInAvLatency(ArgValue *args);
+static void handleAudioMixingChanged(ArgValue *args);
 
 IARM_Result_t sendIARMEvent(GString* currentEventName, unsigned char eventStatus);
 IARM_Result_t sendIARMEventPayload(GString* currentEventName, char *eventPayload);
@@ -906,8 +907,8 @@ static void handleHdmiHotPlug(ArgValue *args)
 {
     bool isPlugged     = BOOL_ARG(0);
 
-    g_message("handleHdmiHotPlug: port=%d, isPlugged=%s",
-              port, isPlugged ? "true" : "false");
+    g_message("handleHdmiHotPlug: isPlugged=%s",
+                 isPlugged ? "true" : "false");
     IARM_Bus_DSMgr_EventData_t hdmi_in_hpd_eventData;
     memset(&hdmi_in_hpd_eventData, 0, sizeof(hdmi_in_hpd_eventData));
 
@@ -958,8 +959,8 @@ static void handleAudioOutHotPlug(ArgValue *args)
 
     IARM_Bus_DSMgr_EventData_t audio_out_hpd_eventData;
     memset(&audio_out_hpd_eventData, 0, sizeof(audio_out_hpd_eventData));
-    audio_out_hpd_eventData.data.audio_out_connect.portType = portType;
-    audio_out_hpd_eventData.data.audio_out_connect.uiPortNo = uiPortNo;
+    audio_out_hpd_eventData.data.audio_out_connect.portType = port_type;
+    audio_out_hpd_eventData.data.audio_out_connect.uiPortNo = port;
     audio_out_hpd_eventData.data.audio_out_connect.isPortConnected = isPortConnected;
         
     IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
@@ -1041,7 +1042,7 @@ static void handleAudioFaderControl(ArgValue *args)
 {
     int audioFader         = INT_ARG(0);
 
-    g_message("handleAudioFaderControl: audioFormat=%d", audioFormat);
+    g_message("handleAudioFaderControl: audioFader=%d", audioFader);
 
     IARM_Bus_DSMgr_EventData_t fader_control_event_data;
     memset(&fader_control_event_data, 0, sizeof(fader_control_event_data));	
@@ -1085,7 +1086,7 @@ static void handleAudioPortState(ArgValue *args)
 {
     int audioportstate        = INT_ARG(0);
 
-    g_message("handleAudioPortState: audioportstate=%d", audiomixval);
+    g_message("handleAudioPortState: audioportstate=%d", audioportstate);
 
     IARM_Bus_DSMgr_EventData_t audio_portstate_event_data;
     memset(&audio_portstate_event_data, 0, sizeof(audio_portstate_event_data));	
@@ -1173,7 +1174,7 @@ static void handleAtmosCapsChanged(ArgValue *args)
 
     IARM_Bus_DSMgr_EventData_t atmos_caps_change_event_data;
     memset(&atmos_caps_change_event_data, 0, sizeof(atmos_caps_change_event_data));
-    atmos_caps_change_event_data.data.AtmosCapsChange.caps = atmosCaps;
+    atmos_caps_change_event_data.data.AtmosCapsChange.caps = atmoscaps;
     atmos_caps_change_event_data.data.AtmosCapsChange.status = status;
 
     IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
@@ -1217,7 +1218,7 @@ static void handleVideoFormatUdate(ArgValue *args)
 
     IARM_Bus_DSMgr_EventData_t video_format_event_data;
     memset(&video_format_event_data, 0, sizeof(video_format_event_data));	
-    audio_level_event_data.data.VideoFormatInfo.videoFormat = videoformat;
+    video_format_event_data.data.VideoFormatInfo.videoFormat = videoformat;
 
     IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
                                    (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_VIDEO_FORMAT_UPDATE,
@@ -1354,7 +1355,7 @@ static void handleEventRxSense(ArgValue *args)
 {
     int rxsense        = INT_ARG(0);
 
-    g_message("handleAudioPortState: audioportstate=%d", audiomixval);
+    g_message("handleAudioPortState: audioportstate=%d", rxsense);
 
     IARM_Bus_DSMgr_EventData_t rxsense_event_data;
     memset(&rxsense_event_data, 0, sizeof(rxsense_event_data));	
@@ -1386,14 +1387,14 @@ static void printUsage(const char *prog)
     g_message("  %s DSMgr_HdmiInAviContentType <port> <avi_content_type>", prog);
     g_message("  %s DSMgr_AudioOutHotPlug <port_type> <port> <isconnected:true/false>", prog);
     g_message("  %s DSMgr_AudioFormatUpdate <Audio_format>", prog);
-    g_message("  %s DSMgr_AudioPrimaryLanguageChanged <"lang string">", prog);
-    g_message("  %s DSMgr_AudioSecondaryLanguageChanged <"lang string">", prog);	
+    g_message("  %s DSMgr_AudioPrimaryLanguageChanged <lang string>", prog);
+    g_message("  %s DSMgr_AudioSecondaryLanguageChanged <lang string>", prog);	
     g_message("  %s DSMgr_AudioFaderControl <Audio_faderval>", prog);	
     g_message("  %s DSMgr_AudioMixingChanged <Audio_mixingval>", prog);
     g_message("  %s DSMgr_AudioPortState <Audio_PortStateVal>", prog);
     g_message("  %s DSMgr_AudioMode <porttype> <audiomode>", prog);
-    g_message("  %s DSMgr_DisplayFrameRatePreChange <"framerate_string">", prog);
-    g_message("  %s DSMgr_DisplayFrameRatePostChange <"framerate_string">", prog);
+    g_message("  %s DSMgr_DisplayFrameRatePreChange <framerate_string>", prog);
+    g_message("  %s DSMgr_DisplayFrameRatePostChange <framerate_string>", prog);
     g_message("  %s DSMgr_AtmosCapsChanged <atmosCaps> <true/false>", prog);
     g_message("  %s DSMgr_EventRxSense <rxsense_value>", prog);	
     g_message("  %s DSMgr_EventZoomSettings <zoom_value>", prog);
