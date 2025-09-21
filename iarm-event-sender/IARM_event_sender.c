@@ -1231,6 +1231,27 @@ static void handleVideoFormatUdate(ArgValue *args)
     }
 }
 
+static void handleEventZoomSetting(ArgValue *args)
+{
+    int zoomvalue      = INT_ARG(0);
+
+    g_message("handleEventZoomSetting: zoomvalue=%d", zoomvalue);
+
+    IARM_Bus_DSMgr_EventData_t zoom_format_event_data;
+    memset(&zoom_format_event_data, 0, sizeof(zoom_format_event_data));	
+    zoom_format_event_data.data.dfc.zoomsettings = zoomvalue;
+
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                                   (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_VIDEO_FORMAT_UPDATE,
+                                   (void *)&zoom_format_event_data,
+                                   sizeof(zoom_format_event_data));
+
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
 
 static void handleDisplayResolutionPreChange(ArgValue *args)
 {
