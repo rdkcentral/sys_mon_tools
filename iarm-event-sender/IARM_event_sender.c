@@ -1233,11 +1233,11 @@ static void handleAudioLevelChanged(ArgValue *args)
 }
 
 
-static void handleVideoFormatUdate(ArgValue *args)
+static void handleVideoFormatUpdate(ArgValue *args)
 {
     int videoformat       = INT_ARG(0);
 
-    g_message("handleVideoFormatUdate: videoformat=%d", videoformat);
+    g_message("handleVideoFormatUpdate: videoformat=%d", videoformat);
 
     IARM_Bus_DSMgr_EventData_t video_format_event_data;
     memset(&video_format_event_data, 0, sizeof(video_format_event_data));	
