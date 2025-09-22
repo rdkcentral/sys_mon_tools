@@ -115,12 +115,13 @@ static void handleAtmosCapsChanged(ArgValue *args);
 static void handleEventRxSense(ArgValue *args);
 static void handleHdmiHotPlug(ArgValue *args);
 static void handleAudioLevelChanged(ArgValue *args);
-static void handleVideoFormatUdate(ArgValue *args);
+static void handleVideoFormatUpdate(ArgValue *args);
 static void handleDisplayResolutionPreChange(ArgValue *args);
 static void handleDisplayResolutionPostChange(ArgValue *args);
 static void handleHdmiInAvLatency(ArgValue *args);
 static void handleAudioMixingChanged(ArgValue *args);
 static void handleEventZoomSetting(ArgValue *args);
+static void handleEventHdcpStatus(ArgValue *args);
 
 IARM_Result_t sendIARMEvent(GString* currentEventName, unsigned char eventStatus);
 IARM_Result_t sendIARMEventPayload(GString* currentEventName, char *eventPayload);
@@ -173,10 +174,11 @@ static IARM_EventEntry iarmEventTable[] = {
     { "DSMgr_EventZoomSettings",             1, { ARG_INT }, handleEventZoomSetting },
     { "DSMgr_HdmiHotPlug",                   1, { ARG_BOOL }, handleHdmiHotPlug },
     { "DSMgr_AudioLevelChanged",             1, { ARG_INT }, handleAudioLevelChanged },
-    { "DSMgr_VideoFormatUdate",              1, { ARG_INT }, handleVideoFormatUdate },
+    { "DSMgr_VideoFormatUpdate",             1, { ARG_INT }, handleVideoFormatUpdate },
     { "DSMgr_DisplayResolutionPreChange",    2, { ARG_INT, ARG_INT }, handleDisplayResolutionPreChange },
     { "DSMgr_DisplayResolutionPostChange",   2, { ARG_INT, ARG_INT }, handleDisplayResolutionPostChange },
-    { "DSMgr_HdmiInAvLatency",               2, { ARG_INT, ARG_INT }, handleHdmiInAvLatency },		
+    { "DSMgr_HdmiInAvLatency",               2, { ARG_INT, ARG_INT }, handleHdmiInAvLatency },
+    { "DSMgr_EventHdcpStatus",               1, { ARG_STRING }, handleEventHdcpStatus },
 };
 static const int iarmEventTableSize = sizeof(iarmEventTable) / sizeof(iarmEventTable[0]);
 
@@ -197,6 +199,24 @@ IARM_event_sender DSMgr_HdmiInStatus <port> <ispresented>
 IARM_event_sender DSMgr_HdmiInSignalStatus <port> <signalvalue>
 IARM_event_sender DSMgr_HdmiInHotPlug <port> <true/false>
 IARM_event_sender DSMgr_HdmiInAviContentType <port> <avi_content_type>
+IARM_event_sender DSMgr_AudioOutHotPlug <port_type> <port> <isconnected:true/false>
+IARM_event_sender DSMgr_AudioFormatUpdate <Audio_format>
+IARM_event_sender DSMgr_AudioPrimaryLanguageChanged <lang string>
+IARM_event_sender DSMgr_AudioSecondaryLanguageChanged <lang string>
+IARM_event_sender DSMgr_AudioFaderControl <Audio_faderval>
+IARM_event_sender DSMgr_AudioMixingChanged <Audio_mixingval>
+IARM_event_sender DSMgr_AudioPortState <Audio_PortStateVal>
+IARM_event_sender DSMgr_AudioMode <porttype> <audiomode>
+IARM_event_sender DSMgr_DisplayFrameRatePreChange <framerate_string>
+IARM_event_sender DSMgr_DisplayFrameRatePostChange <framerate_string>
+IARM_event_sender DSMgr_AtmosCapsChanged <atmosCaps> <true/false>
+IARM_event_sender DSMgr_EventRxSense <rxsense_value>
+IARM_event_sender DSMgr_EventZoomSettings <zoom_value>
+IARM_event_sender DSMgr_HdmiHotPlug <true/false>
+IARM_event_sender DSMgr_AudioLevelChanged <audio_value>
+IARM_event_sender DSMgr_VideoFormatUpdate <video_format_value_in_binary_bit_position>
+IARM_event_sender DSMgr_HdmiInAvLatency <audio_output_delay> <video_latency>
+IARM_event_sender handleEventHdcpStatus <string_none>
  
 */
  
@@ -219,7 +239,7 @@ int main(int argc,char *argv[])
         sendIARMEvent(currentEventName,eventStatus);
         return 0;
     }
-    else if (argc >= 2 && !strncmp(argv[1], "DSMgr_", 5)) {
+    else if (argc >= 1 && !strncmp(argv[1], "DSMgr_", 5)) {
         handleIARMEvents(argc, argv);
     } 
     else if (argc == 4)
@@ -656,9 +676,11 @@ static bool parseArg(const char *arg, ArgType type, ArgValue *out)
             if (!strcasecmp(arg, "0") || !strcasecmp(arg, "false")){ out->val.b = false; return true; }
             return false;
         case ARG_STRING:
-        default:
             out->val.s = arg;
             return true;
+		default:
+			g_message("parseArg Error unsupported Argument type \r\n");
+			return false;
     }
 }
 
@@ -1359,6 +1381,7 @@ static void handleIARMEvents(int argc, char *argv[])
                     case ARG_INT:    g_message("  Arg[%d] INT  = %d\n", j, args[j].val.i); break;
                     case ARG_BOOL:   g_message("  Arg[%d] BOOL = %s\n", j, args[j].val.b ? "true" : "false"); break;
                     case ARG_STRING: g_message("  Arg[%d] STR  = %s\n", j, args[j].val.s); break;
+					default:  g_message("handleIARMEvents Error Unsupported Argument type \r\n");
                 }
             }
             IARM_Bus_Init("SimulateDSMgrEvent");
@@ -1393,6 +1416,26 @@ static void handleEventRxSense(ArgValue *args)
     }
 }
 
+static void handleEventHdcpStatus(ArgValue *args)
+{
+    const char *value = STR_ARG(0);	
+
+    g_message("handleEventHdcpStatus: value=%s", value);
+
+    IARM_Bus_DSMgr_EventData_t hdcp_event_data;
+    memset(&hdcp_event_data, 0, sizeof(hdcp_event_data));		
+ 
+    IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
+                                   (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_HDCP_STATUS,
+                                   (void *)&hdcp_event_data,
+                                   sizeof(hdcp_event_data));
+    if (rc != IARM_RESULT_SUCCESS)
+    {
+       g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
+    }
+}
+
+
 static void printUsage(const char *prog)
 {
     g_message("Usage Applicable only for IARM Events:\n");
@@ -1420,9 +1463,9 @@ static void printUsage(const char *prog)
     g_message("  %s DSMgr_AtmosCapsChanged <atmosCaps> <true/false>", prog);
     g_message("  %s DSMgr_EventRxSense <rxsense_value>", prog);	
     g_message("  %s DSMgr_EventZoomSettings <zoom_value>", prog);
-    g_message("  %s DSMgr_handleHdmiHotPlug <true/false>", prog);
+    g_message("  %s DSMgr_HdmiHotPlug <true/false>", prog);
     g_message("  %s DSMgr_AudioLevelChanged <audio_value>", prog);	
-    g_message("  %s DSMgr_VideoFormatUdate <video_format_value_in_binary_bit_position>", prog);
+    g_message("  %s DSMgr_VideoFormatUpdate <video_format_value_in_binary_bit_position>", prog);
     g_message("  %s DSMgr_HdmiInAvLatency <audio_output_delay> <video_latency>", prog);		
-
+    g_message("  %s handleEventHdcpStatus <string_none>", prog);		
 }
