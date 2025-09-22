@@ -1275,7 +1275,7 @@ static void handleEventZoomSetting(ArgValue *args)
     zoom_format_event_data.data.dfc.zoomsettings = zoomvalue;
 
     IARM_Result_t rc = IARM_Bus_BroadcastEvent(IARM_BUS_DSMGR_NAME,
-                                   (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_VIDEO_FORMAT_UPDATE,
+                                   (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_ZOOM_SETTINGS,
                                    (void *)&zoom_format_event_data,
                                    sizeof(zoom_format_event_data));
 
@@ -1410,7 +1410,7 @@ static void handleEventRxSense(ArgValue *args)
 {
     int rxsense        = INT_ARG(0);
 
-    g_message("handleAudioPortState: audioportstate=%d", rxsense);
+    g_message("handleEventRxSense: rxsense=%d", rxsense);
 
     IARM_Bus_DSMgr_EventData_t rxsense_event_data;
     memset(&rxsense_event_data, 0, sizeof(rxsense_event_data));	
@@ -1419,7 +1419,6 @@ static void handleEventRxSense(ArgValue *args)
                            (IARM_EventId_t)IARM_BUS_DSMGR_EVENT_RX_SENSE,
                            (void *)&rxsense_event_data,
                            sizeof(rxsense_event_data));
-						   
     if (rc != IARM_RESULT_SUCCESS)
     {
        g_warning("IARM_Bus_BroadcastEvent failed for %s: rc=%d", __func__, rc);
