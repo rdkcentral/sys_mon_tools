@@ -145,7 +145,7 @@ static struct eventList{
     {"RedStateEvent",IARM_BUS_SYSMGR_SYSSTATE_RED_RECOV_UPDATE_STATE}
 };
 
-/* Table only used for IARM Events */
+/* Old code retained as is and plugged to fit the new dsmgr events. Table only used for DsMgr */
 
 static IARM_EventEntry iarmEventTable[] = {
     { "DSMgr_CompositeInHotPlug",            2, { ARG_INT, ARG_BOOL }, handleCompositeInHotPlug },
@@ -216,7 +216,7 @@ IARM_event_sender DSMgr_HdmiHotPlug <true/false>
 IARM_event_sender DSMgr_AudioLevelChanged <audio_value>
 IARM_event_sender DSMgr_VideoFormatUpdate <video_format_value_in_binary_bit_position>
 IARM_event_sender DSMgr_HdmiInAvLatency <audio_output_delay> <video_latency>
-IARM_event_sender handleEventHdcpStatus <string_none>
+IARM_event_sender DSMgr_EventHdcpStatus <string_none>
  
 */
  
@@ -230,7 +230,20 @@ int main(int argc,char *argv[])
     g_message("IARM_event_sender  Entering %d\r\n", getpid());
     GString *currentEventName=g_string_new(NULL);
 
-    if (argc == 3)
+    if (argc < 2)
+    {
+        g_message("-----------------------------------------------------------------\n");
+        g_message("Normal Usage: %s <event name > <event status> \n",argv[0]);
+        g_message("Custom Usage: %s CustomEvent <event stateId> <event state> <event error> \n",argv[0]);
+        g_message("(%d)\n",argc );
+        g_message("-----------------------------------------------------------------\n");
+        printUsage(argv[0]);
+        return 1;
+    }
+    if (argc >= 2 && !strncmp(argv[1], "DSMgr_", 5)) {
+        handleIARMEvents(argc, argv);
+    }
+    else if (argc == 3)
     {
         unsigned char eventStatus;
         g_string_assign(currentEventName,argv[1]);
@@ -239,9 +252,6 @@ int main(int argc,char *argv[])
         sendIARMEvent(currentEventName,eventStatus);
         return 0;
     }
-    else if (argc >= 1 && !strncmp(argv[1], "DSMgr_", 5)) {
-        handleIARMEvents(argc, argv);
-    } 
     else if (argc == 4)
     {
         char eventPayload[ IARM_BUS_SYSMGR_Intrusion_MaxLen+1 ]; // iarm payload is limited in size. this can check for overflow
@@ -1467,5 +1477,5 @@ static void printUsage(const char *prog)
     g_message("  %s DSMgr_AudioLevelChanged <audio_value>", prog);	
     g_message("  %s DSMgr_VideoFormatUpdate <video_format_value_in_binary_bit_position>", prog);
     g_message("  %s DSMgr_HdmiInAvLatency <audio_output_delay> <video_latency>", prog);		
-    g_message("  %s handleEventHdcpStatus <string_none>", prog);		
+    g_message("  %s DSMgr_EventHdcpStatus <string_none>", prog);
 }
