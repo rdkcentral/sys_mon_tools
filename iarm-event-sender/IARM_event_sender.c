@@ -215,6 +215,8 @@ IARM_event_sender DSMgr_EventZoomSettings <zoom_value>
 IARM_event_sender DSMgr_HdmiHotPlug <true/false>
 IARM_event_sender DSMgr_AudioLevelChanged <audio_value>
 IARM_event_sender DSMgr_VideoFormatUpdate <video_format_value_in_binary_bit_position>
+IARM_event_sender DSMgr_DisplayResolutionPreChange <heightvalue> <widthvalue>
+IARM_event_sender DSMgr_DisplayResolutionPostChange <heightvalue> <widthvalue>
 IARM_event_sender DSMgr_HdmiInAvLatency <audio_output_delay> <video_latency>
 IARM_event_sender DSMgr_EventHdcpStatus <string_none>
  
@@ -1475,6 +1477,8 @@ static void printUsage(const char *prog)
     g_message("  %s DSMgr_HdmiHotPlug <true/false>", prog);
     g_message("  %s DSMgr_AudioLevelChanged <audio_value>", prog);	
     g_message("  %s DSMgr_VideoFormatUpdate <video_format_value_in_binary_bit_position>", prog);
+    g_message("  %s DSMgr_DisplayResolutionPreChange <heightvalue> <widthvalue>", prog);	
+    g_message("  %s DSMgr_DisplayResolutionPostChange <heightvalue> <widthvalue>", prog);	
     g_message("  %s DSMgr_HdmiInAvLatency <audio_output_delay> <video_latency>", prog);		
     g_message("  %s DSMgr_EventHdcpStatus <string_none>", prog);
 }
