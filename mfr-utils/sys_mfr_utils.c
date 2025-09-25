@@ -97,14 +97,29 @@ int main(int argc, char *argv[])
 
     //redirect stdout to null to avoid printing debug prints from IARM Bus
     int fp_old = dup(1);  // preserve the original stdout
-    freopen ("/dev/null", "w", stdout);
+    if(fp_old == -1) {
+        printf("dup() failed to preserve stdout\n");
+        return -1;
+    }
+    if(freopen ("/dev/null", "w", stdout) == NULL){
+        printf("freopen() failed to redirect stdout\n");
+        close(fp_old);
+        return -1;
+    }
 
     IARM_Bus_Init("mfr_util");
     IARM_Bus_Connect();
     IARM_Malloc(IARM_MEMTYPE_PROCESSLOCAL, sizeof(IARM_Bus_MFRLib_GetSerializedData_Param_t), (void**)&param);
 
-    fclose(stdout);
-    stdout = fdopen(fp_old, "w"); // restore stdout
+    fflush(stdout); // ensure buffer is flushed
+    // restore original stdout
+    if (dup2(fp_old, fileno(stdout)) == -1) {
+        printf("dup2() failed to restore stdout\n");
+        close(fp_old);
+        IARM_Free(IARM_MEMTYPE_PROCESSLOCAL, param);
+        return -1;
+    }
+    close(fp_old);
 
     param->type = mfr_args[paramIndex];;
 
@@ -129,13 +144,27 @@ int main(int argc, char *argv[])
     IARM_Free(IARM_MEMTYPE_PROCESSLOCAL,param);
 
     fp_old = dup(1);  // preserve the original stdout
-    freopen ("/dev/null", "w", stdout);
+    if(fp_old == -1) {
+        printf("dup() failed to preserve stdout\n");
+        return -1;
+    }
+    if(freopen ("/dev/null", "w", stdout) == NULL){
+        printf("freopen() failed to redirect stdout\n");
+        close(fp_old);
+        return -1;
+    }
 
     IARM_Bus_Disconnect();
     IARM_Bus_Term();
 
-    fclose(stdout);
-    stdout = fdopen(fp_old, "w"); // restore stdout
+    fflush(stdout); // ensure buffer is flushed
+    // restore original stdout
+    if (dup2(fp_old, fileno(stdout)) == -1) {
+        printf("dup2() failed to restore stdout\n");
+        close(fp_old);
+        return -1;
+    }
+    close(fp_old);
 
     return 0;
 }
