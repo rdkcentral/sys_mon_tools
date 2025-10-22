@@ -30,6 +30,8 @@ AM_CFLAGS = \
 	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/rdk/iarmmgrs/rdmmgr \
 	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/rdk/iarmmgrs/receiver \
 	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/rdk/iarmmgrs/sysmgr \
+	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/rdk/ds-rpc \
+	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/rdk/halif/ds-hal \
 	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/WPEFramework/powercontroller \
 	-L$(PKG_CONFIG_SYSROOT_DIR)/usr/lib/
 
