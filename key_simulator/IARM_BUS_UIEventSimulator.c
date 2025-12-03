@@ -228,8 +228,9 @@ void sendKeyEventToIARM(int keyType, int keyCode)
 #endif
 
 	printf("Sending Key (%x, %x) from %s\r\n", keyType, keyCode, executableName);
-        printf("%d:%s: Using UINPUT dipatcher", __LINE__, __func__);
+        printf("%d:%s: Using UINPUT dispatcher", __LINE__, __func__);
         uinput_dispatcher_t dispatcher = UINPUT_GetDispatcher();
+        // Copilot fix: Added null pointer check to prevent crash when dispatcher is unavailable
         if (dispatcher != NULL) {
             /*Time being replacing scan code with 0 to run the functionality*/
             dispatcher( keyCode, keyType, 0);

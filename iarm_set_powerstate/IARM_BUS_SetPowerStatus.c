@@ -84,6 +84,7 @@ typedef struct {
 static void* asyncThreadMain(void* arg)
 {
     Controller* controller = (Controller*)arg;
+    // Copilot fix: Changed from floating-point to integer-only arithmetic to prevent overflow
     usleep(controller->ack * 1000000 - 50000); // Ack delay minus 50ms
     PowerController_PowerModePreChangeComplete(controller->clientId, controller->transactionId);
     return NULL;

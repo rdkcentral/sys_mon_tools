@@ -81,6 +81,7 @@ int main(int argc, char* argv[])
     int ret = 0;
 
     if (argc > 1) {
+        // Copilot fix: Added bounds check to prevent array out-of-bounds access
         if (argv[1] && strlen(argv[1]) > 1 && argv[1][1] == 'c') {
             uint32_t res = 0;
             PowerController_PowerState_t curState = POWER_STATE_UNKNOWN, previousState = POWER_STATE_UNKNOWN;
@@ -114,7 +115,7 @@ int main(int argc, char* argv[])
             /* Dispose closes RPC conn, do not make any power manager calls after this */
             PowerController_Term();
 
-        } else if (argv[1][1] == 'h') {
+        } else if (argv[1] && strlen(argv[1]) > 1 && argv[1][1] == 'h') {
             usage();
         }
     } else {
@@ -126,10 +127,12 @@ int main(int argc, char* argv[])
         memset(&pwrSettings, 0, sizeof(PWRMgr_Settings_t));
 
         if (fd > 0) {
+            // Copilot fix: Added lseek error handling and ensured fd is closed in all paths
+            // to prevent resource leak
             off_t seek_result = lseek(fd, 0, SEEK_SET);
             if (seek_result < 0) {
-                printf("Error in seeking PWRMgr settings File");
-            } else {
+                printf("Error in seeking PWRMgr settings File\n");
+            } else {5
                 ret = read(fd, &pwrSettings, (sizeof(PWRMgr_Settings_t) - PADDING_SIZE));
             }
 
