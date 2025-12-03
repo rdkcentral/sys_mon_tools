@@ -230,8 +230,12 @@ void sendKeyEventToIARM(int keyType, int keyCode)
 	printf("Sending Key (%x, %x) from %s\r\n", keyType, keyCode, executableName);
         printf("%d:%s: Using UINPUT dipatcher", __LINE__, __func__);
         uinput_dispatcher_t dispatcher = UINPUT_GetDispatcher();
-        /*Time being replacing scan code with 0 to run the functionality*/
-        dispatcher( keyCode, keyType, 0);
+        if (dispatcher != NULL) {
+            /*Time being replacing scan code with 0 to run the functionality*/
+            dispatcher( keyCode, keyType, 0);
+        } else {
+            printf("%d:%s: Error: UINPUT dispatcher not available\n", __LINE__, __func__ );
+        }
 }
 
 /**

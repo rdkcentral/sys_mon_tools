@@ -84,7 +84,7 @@ typedef struct {
 static void* asyncThreadMain(void* arg)
 {
     Controller* controller = (Controller*)arg;
-    usleep((controller->ack - 0.05) * 1000000); // Ack delay minus 50ms
+    usleep(controller->ack * 1000000 - 50000); // Ack delay minus 50ms
     PowerController_PowerModePreChangeComplete(controller->clientId, controller->transactionId);
     return NULL;
 }

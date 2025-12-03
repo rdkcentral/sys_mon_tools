@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
     int ret = 0;
 
     if (argc > 1) {
-        if (argv[1][1] == 'c') {
+        if (argv[1] && strlen(argv[1]) > 1 && argv[1][1] == 'c') {
             uint32_t res = 0;
             PowerController_PowerState_t curState = POWER_STATE_UNKNOWN, previousState = POWER_STATE_UNKNOWN;
 
@@ -126,8 +126,12 @@ int main(int argc, char* argv[])
         memset(&pwrSettings, 0, sizeof(PWRMgr_Settings_t));
 
         if (fd > 0) {
-            lseek(fd, 0, SEEK_SET);
-            ret = read(fd, &pwrSettings, (sizeof(PWRMgr_Settings_t) - PADDING_SIZE));
+            off_t seek_result = lseek(fd, 0, SEEK_SET);
+            if (seek_result < 0) {
+                printf("Error in seeking PWRMgr settings File");
+            } else {
+                ret = read(fd, &pwrSettings, (sizeof(PWRMgr_Settings_t) - PADDING_SIZE));
+            }
 
             close(fd);
         }
