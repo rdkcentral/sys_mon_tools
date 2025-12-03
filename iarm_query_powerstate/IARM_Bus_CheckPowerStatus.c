@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
             off_t seek_result = lseek(fd, 0, SEEK_SET);
             if (seek_result < 0) {
                 printf("Error in seeking PWRMgr settings File\n");
-            } else {5
+            } else {
                 ret = read(fd, &pwrSettings, (sizeof(PWRMgr_Settings_t) - PADDING_SIZE));
             }
 
