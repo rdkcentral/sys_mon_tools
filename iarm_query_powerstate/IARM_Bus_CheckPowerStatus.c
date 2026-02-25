@@ -26,7 +26,7 @@
 /*#include "libIBus.h"*/
 #include "pwrMgr.h"
 
-#include "power_controller.h"
+#include "powermanager_client.h"
 
 #define PADDING_SIZE 32
 
@@ -72,37 +72,30 @@ int main(int argc, char* argv[])
 
     if (argc > 1) {
         if (argv[1][1] == 'c') {
-            uint32_t res = 0;
-            PowerController_PowerState_t curState = POWER_STATE_UNKNOWN, previousState = POWER_STATE_UNKNOWN;
-
-            PowerController_Init();
+            PowerManager_PowerState_t curState = POWER_STATE_UNKNOWN, previousState = POWER_STATE_UNKNOWN;
 
             /** Query current Power state  */
-            res = PowerController_GetPowerState(&curState, &previousState);
-
-            if (POWER_CONTROLLER_ERROR_NONE == res) {
+            if (0 == PowerManager_GetPowerState(&curState, &previousState)) {
 
                 if (POWER_STATE_OFF == curState) {
-                    printf("OFF\n");
+                    printf("OFF");
                 } else if (POWER_STATE_STANDBY == curState) {
-                    printf("STANDBY\n");
+                    printf("STANDBY");
                 } else if (POWER_STATE_ON == curState) {
-                    printf("ON\n");
+                    printf("ON");
                 } else if (POWER_STATE_STANDBY_LIGHT_SLEEP == curState) {
-                    printf("LIGHTSLEEP\n");
+                    printf("LIGHTSLEEP");
                 } else if (POWER_STATE_STANDBY_DEEP_SLEEP == curState) {
-                    printf("DEEPSLEEP\n");
+                    printf("DEEPSLEEP");
                 } else {
-                    printf("Unknown\n");
+                    printf("Unknown");
                 }
-            } else if (POWER_CONTROLLER_ERROR_UNAVAILABLE == res) {
-                printf("Error :: PowerManager plugin unavailable\n");
             } else {
-                printf("Error :: Unknown\n");
+                printf("Unknown");
             }
 
             /* Dispose closes RPC conn, do not make any power manager calls after this */
-            PowerController_Term();
+            PowerManager_Dispose();
 
         } else if (argv[1][1] == 'h') {
             usage();
@@ -123,24 +116,21 @@ int main(int argc, char* argv[])
         }
 
         if (ret > 0) {
-            if (IARM_BUS_PWRMGR_POWERSTATE_OFF == pwrSettings.powerState) {
+            if (pwrSettings.powerState == IARM_BUS_PWRMGR_POWERSTATE_OFF)
                 printf("OFF");
-            } else if (IARM_BUS_PWRMGR_POWERSTATE_STANDBY == pwrSettings.powerState) {
+            else if (pwrSettings.powerState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY)
                 printf("STANDBY");
-            } else if (IARM_BUS_PWRMGR_POWERSTATE_ON == pwrSettings.powerState) {
+            else if (pwrSettings.powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)
                 printf("ON");
-            } else if (IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP == pwrSettings.powerState) {
+            else if (pwrSettings.powerState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP)
                 printf("LIGHTSLEEP");
-            } else if (IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP == pwrSettings.powerState) {
+            else if (pwrSettings.powerState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP)
                 printf("DEEPSLEEP");
-            } else {
+            else
                 printf("Unknown Power state");
-            }
-        } else {
+        } else
             printf("Error in reading PWRMgr settings File");
-        }
-
-        printf("\n");
     }
+    printf("\n");
     return 0;
 }
