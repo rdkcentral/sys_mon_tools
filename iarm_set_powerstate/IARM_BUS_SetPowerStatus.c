@@ -43,7 +43,7 @@ void usage()
  */
 int main(int argc, char* argv[])
 {
-    PowerController_PowerState_t powerstate = POWER_STATE_ON;
+    PowerManager_PowerState_t powerstate = POWER_STATE_ON;
 
     if (argc < 2) {
         usage();
