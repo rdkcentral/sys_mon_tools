@@ -42,16 +42,22 @@ static void _lightsleepEventHandler (const PowerController_PowerState_t currentS
 static void* lightsleep_monitor(void *arg);
 
 // Helper to check if file exists
-int file_exists(const char *filename) {
+static int file_exists(const char *filename) {
     struct stat buffer;
     return (stat(filename, &buffer) == 0);
 }
 
 // Helper to get timestamp string
-void get_timestamp(char *buf, size_t buflen) {
+static void get_timestamp(char *buf, size_t buflen) {
     time_t now = time(NULL);
-    struct tm *tm_info = localtime(&now);
-    strftime(buf, buflen, "%Y-%m-%d %H:%M:%S", tm_info);
+    struct tm tm_info;
+    if (localtime_r(&now, &tm_info) == NULL) {
+        if (buflen > 0) {
+            buf[0] = '\0';
+        }
+        return;
+    }
+     strftime(buf, buflen, "%Y-%m-%d %H:%M:%S", &tm_info);
 }
 
 static void* lightsleep_monitor(void *arg) {
@@ -77,18 +83,19 @@ static void* lightsleep_monitor(void *arg) {
                 fprintf(log, "%s Box is in Power ON mode, journalctl will sync the logs..!\n", ts);
                 fclose(log);
             }
-            remove(TMP_LIGHTSLEEP_ON);
+            if(remove(TMP_LIGHTSLEEP_ON) != 0) {
+                printf("Error deleting lightsleep file\n");
+            }
             return NULL;
     }
 
-    int count = 0;
-        log = fopen(log_file, "a");
-        if (log) {
-            char ts[32];
-            get_timestamp(ts, sizeof(ts));
-            fprintf(log, "%s Starting the lightsleep monitoring..!\n", ts);
-            fclose(log);
-        }
+    log = fopen(log_file, "a");
+    if (log) {
+        char ts[32];
+        get_timestamp(ts, sizeof(ts));
+        fprintf(log, "%s Starting the lightsleep monitoring..!\n", ts);
+        fclose(log);
+    }
 
     while (1) {
         sleep(60);
@@ -100,7 +107,9 @@ static void* lightsleep_monitor(void *arg) {
                     fprintf(log, "%s Box is in Power ON mode from STANDBY..! exiting\n", ts);
                     fclose(log);
                 }
-                remove(TMP_LIGHTSLEEP_ON);
+                if(remove(TMP_LIGHTSLEEP_ON) != 0) {
+                    printf("Error deleting lightsleep file\n");
+                }
                 return NULL;
         }
     }
@@ -139,7 +148,8 @@ static void setModeSettings(int mode)
            }
            break;
        default:
-           printf("setModeSettings: Unkown Argument..!\n");
+           printf("setModeSettings: Unknown Argument..!\n");
+           return;
     }
     fptr = fopen(setFlag, "w+");
     if(fptr == NULL){ //if file does not exist, create it
@@ -254,26 +264,25 @@ int power_monitor_init(void)
 int main(int argc, char *argv[])
 {
     GAsyncQueue *msgQueuePtr=NULL;
-    GAsyncQueue *gQpointer=NULL;
 
     power_monitor_init();
     
     /* Register the event callback function..! */
-    printf("%s : Registering Callback for Power Mode Change Notification..!\n",__FUNCTION__);
+    printf("%s : Registering Callback for Power Mode Change Notification..!\n", __FUNCTION__);
     PowerController_RegisterPowerModeChangedCallback(_lightsleepEventHandler, NULL);
     
+     /* Create the async queue once and keep the process alive by popping from it */
+    msgQueuePtr = g_async_queue_new ();
+    if ( msgQueuePtr == NULL ){
+        printf("Not able to create a queue..!");
+        return 1;
+    }
+
     /* This call will make the process alive */
     while (true)
     {
-       msgQueuePtr = g_async_queue_new ();
-       if ( msgQueuePtr == NULL ){
-            printf("Not able to create a queue..!");
-       }
-       else{
-            printf("Wait Call for message pop..!\n");
-       }
-       g_async_queue_pop (msgQueuePtr);
+        printf("Wait Call for message pop..!\n");
+        g_async_queue_pop (msgQueuePtr);
     }
-    exit(0); /* exit */  
 }
 

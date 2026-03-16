@@ -58,4 +58,4 @@ IARM_event_sender_SOURCES = iarm-event-sender/IARM_event_sender.c
 IARM_event_sender_LDADD = $(DIRECT_LIBS) $(FUSION_LIBS) $(GLIB_LIBS) -lIARMBus $(DBUS_LIBS)
 
 pwr_state_monitor_SOURCES = power-state-monitor/powerStateMonitorMain.c
-pwr_state_monitor_LDADD = $(DIRECT_LIBS) $(GLIB_LIBS) -lWPEFrameworkPowerController
+pwr_state_monitor_LDADD = $(DIRECT_LIBS) $(GLIB_LIBS) -lpthread -lWPEFrameworkPowerController
