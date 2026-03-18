@@ -33,12 +33,14 @@ AM_CFLAGS = \
 	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/rdk/ds-rpc \
 	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/rdk/halif/ds-hal \
 	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/WPEFramework/powercontroller \
+	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/directfb \
+	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/glib-2.0 \
+	-I$(PKG_CONFIG_SYSROOT_DIR)${libdir}/glib-2.0/include \
 	-L$(PKG_CONFIG_SYSROOT_DIR)/usr/lib/
-
 
 include_HEADERS = $(top_srcdir)/key_simulator/RDKIrKeyCodes.h
 
-bin_PROGRAMS = keySimulator mfr_util QueryPowerState SetPowerState IARM_event_sender
+bin_PROGRAMS = keySimulator mfr_util QueryPowerState SetPowerState IARM_event_sender pwr-state-monitor
 
 mfr_util_SOURCES = mfr-utils/sys_mfr_utils.c
 mfr_util_LDADD = -lIARMBus
@@ -55,3 +57,5 @@ keySimulator_LDADD = $(GLIB_LIBS) -lIARMBus $(DBUS_LIBS)
 IARM_event_sender_SOURCES = iarm-event-sender/IARM_event_sender.c
 IARM_event_sender_LDADD = $(DIRECT_LIBS) $(FUSION_LIBS) $(GLIB_LIBS) -lIARMBus $(DBUS_LIBS)
 
+pwr_state_monitor_SOURCES = power-state-monitor/powerStateMonitorMain.c
+pwr_state_monitor_LDADD = $(DIRECT_LIBS) $(GLIB_LIBS) -lpthread -lWPEFrameworkPowerController
