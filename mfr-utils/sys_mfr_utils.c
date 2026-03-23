@@ -40,8 +40,8 @@
 
 /* both the args CurrentImageFilename & FlashedFilename are querying mfrSERIALIZED_TYPE_IMAGENAME.
  * Leaving it as it is, to avoid breaking the caller */
-const mfrSerializedType_t mfr_args[] = {mfrSERIALIZED_TYPE_IMAGENAME, mfrSERIALIZED_TYPE_IMAGENAME, mfrSERIALIZED_TYPE_MODELNAME, mfrSERIALIZED_TYPE_HWID, mfrSERIALIZED_TYPE_MANUFACTURER, mfrSERIALIZED_TYPE_MANUFACTURING_SERIALNUMBER, mfrSERIALIZED_TYPE_PDRIVERSION};
-const char* mfr_args_str[] = {"mfrSERIALIZED_TYPE_IMAGENAME", "mfrSERIALIZED_TYPE_IMAGENAME", "mfrSERIALIZED_TYPE_MODELNAME", "mfrSERIALIZED_TYPE_HWID", "mfrSERIALIZED_TYPE_MANUFACTURER", "mfrSERIALIZED_TYPE_MANUFACTURING_SERIALNUMBER", "mfrSERIALIZED_TYPE_PDRIVERSION"}; 
+const mfrSerializedType_t mfr_args[] = {mfrSERIALIZED_TYPE_IMAGENAME, mfrSERIALIZED_TYPE_IMAGENAME, mfrSERIALIZED_TYPE_MODELNAME, mfrSERIALIZED_TYPE_HWID, mfrSERIALIZED_TYPE_MANUFACTURER, mfrSERIALIZED_TYPE_MANUFACTURING_SERIALNUMBER, mfrSERIALIZED_TYPE_PDRIVERSION, mfrSERIALIZED_TYPE_HDMIHDCP};
+const char* mfr_args_str[] = {"mfrSERIALIZED_TYPE_IMAGENAME", "mfrSERIALIZED_TYPE_IMAGENAME", "mfrSERIALIZED_TYPE_MODELNAME", "mfrSERIALIZED_TYPE_HWID", "mfrSERIALIZED_TYPE_MANUFACTURER", "mfrSERIALIZED_TYPE_MANUFACTURING_SERIALNUMBER", "mfrSERIALIZED_TYPE_PDRIVERSION", "mfrSERIALIZED_TYPE_HDMIHDCP"};
 
 
 void displayHelp() {
@@ -54,6 +54,7 @@ void displayHelp() {
      printf("%5s -> %s \n","--HardwareId", "Get Hardware ID");
      printf("%5s -> %s \n","--Manufacturer", "Get Manufacturer name");
      printf("%5s -> %s \n","--MfgSerialnumber", "Get Manufacturer serial number");
+     printf("%5s -> %s \n","--HdmiHdcp", "Get Hdmi HDCP key");
 #if defined(YOCTO_BUILD)
      printf("%5s -> %s \n","--PDRIVersion", "Get current PDRIVersion ");
 #endif
