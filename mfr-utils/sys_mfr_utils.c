@@ -112,6 +112,15 @@ int main(int argc, char *argv[])
     IARM_Malloc(IARM_MEMTYPE_PROCESSLOCAL, sizeof(IARM_Bus_MFRLib_GetSerializedData_Param_t), (void**)&param);
 
     fflush(stdout); // ensure buffer is flushed
+
+    param->type = mfr_args[paramIndex];;
+
+    ret = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
+              IARM_BUS_MFRLIB_API_GetSerializedData,
+              (void *)param,
+              sizeof(IARM_Bus_MFRLib_GetSerializedData_Param_t));
+
+    fflush(stdout); // ensure buffer is flushed
     // restore original stdout
     if (dup2(fp_old, fileno(stdout)) == -1) {
         printf("dup2() failed to restore stdout\n");
@@ -120,13 +129,6 @@ int main(int argc, char *argv[])
         return -1;
     }
     close(fp_old);
-
-    param->type = mfr_args[paramIndex];;
-
-    ret = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
-              IARM_BUS_MFRLIB_API_GetSerializedData,
-              (void *)param,
-              sizeof(IARM_Bus_MFRLib_GetSerializedData_Param_t));
 
     if(ret != IARM_RESULT_SUCCESS)
     {
