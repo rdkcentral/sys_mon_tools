@@ -154,6 +154,7 @@ int main(int argc, char *argv[])
 
     if ( NULL == mfrReadBuf) {
         printf("Call failed for %s: error code:%d\n", mfr_args_str[paramIndex], ret);
+        return -1;
     }
     else {
         printf("%s\n", mfrReadBuf);
