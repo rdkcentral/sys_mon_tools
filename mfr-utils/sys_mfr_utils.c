@@ -141,8 +141,11 @@ int main(int argc, char *argv[])
     }
     close(fp_old);
 
-    if ( NULL == mfrReadBuf) {
+    if (IARM_RESULT_SUCCESS != ret) {
         printf("Call failed for %s: error code:%d\n", mfr_args_str[paramIndex], ret);
+    }
+    else if (NULL == mfrReadBuf) {
+        printf("Memory allocation failed for %s\n", mfr_args_str[paramIndex]);
     }
     else {
         printf("%s\n", mfrReadBuf);
