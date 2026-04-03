@@ -137,6 +137,9 @@ int main(int argc, char *argv[])
     if (dup2(fp_old, fileno(stdout)) == -1) {
         printf("dup2() failed to restore stdout\n");
         close(fp_old);
+        if (mfrReadBuf) {
+            free(mfrReadBuf);
+        }
         return -1;
     }
     close(fp_old);
