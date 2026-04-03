@@ -80,6 +80,7 @@ int main(int argc, char *argv[])
 {
     int paramIndex = 0;
     char *mfrReadBuf = NULL;
+    int oom_error = 0;
 
     if (argc != 2) {
         displayHelp();
@@ -125,6 +126,8 @@ int main(int argc, char *argv[])
        if(NULL != mfrReadBuf) {
         memset(mfrReadBuf,0,len);
         memcpy(mfrReadBuf,param->buffer,param->bufLen);
+       } else {
+        oom_error = 1;
        }
     }
     IARM_Free(IARM_MEMTYPE_PROCESSLOCAL,param);
@@ -137,9 +140,15 @@ int main(int argc, char *argv[])
     if (dup2(fp_old, fileno(stdout)) == -1) {
         printf("dup2() failed to restore stdout\n");
         close(fp_old);
+        free(mfrReadBuf);
         return -1;
     }
     close(fp_old);
+
+    if (oom_error) {
+        printf("malloc() failed: out of memory\n");
+        return -1;
+    }
 
     if ( NULL == mfrReadBuf) {
         printf("Call failed for %s: error code:%d\n", mfr_args_str[paramIndex], ret);
