@@ -78,8 +78,9 @@ int validateParams(const char* param) {
 
 int main(int argc, char *argv[])
 {
-
     int paramIndex = 0;
+    char *mfrReadBuf = NULL;
+    int oom_error = 0;
 
     if (argc != 2) {
         displayHelp();
@@ -111,16 +112,6 @@ int main(int argc, char *argv[])
     IARM_Bus_Connect();
     IARM_Malloc(IARM_MEMTYPE_PROCESSLOCAL, sizeof(IARM_Bus_MFRLib_GetSerializedData_Param_t), (void**)&param);
 
-    fflush(stdout); // ensure buffer is flushed
-    // restore original stdout
-    if (dup2(fp_old, fileno(stdout)) == -1) {
-        printf("dup2() failed to restore stdout\n");
-        close(fp_old);
-        IARM_Free(IARM_MEMTYPE_PROCESSLOCAL, param);
-        return -1;
-    }
-    close(fp_old);
-
     param->type = mfr_args[paramIndex];;
 
     ret = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
@@ -128,31 +119,18 @@ int main(int argc, char *argv[])
               (void *)param,
               sizeof(IARM_Bus_MFRLib_GetSerializedData_Param_t));
 
-    if(ret != IARM_RESULT_SUCCESS)
-    {
-       printf("Call failed for %s: error code:%d\n", mfr_args_str[paramIndex], ret);
-    }
-    else
+    if(IARM_RESULT_SUCCESS == ret)
     {
        int len = param->bufLen + 1;
-       char *pTmpStr = (char *)malloc(len);
-       memset(pTmpStr,0,len);
-       memcpy(pTmpStr,param->buffer,param->bufLen);
-       printf("%s\n", pTmpStr);
-       free(pTmpStr);
+       mfrReadBuf = (char *)malloc(len);
+       if(NULL != mfrReadBuf) {
+        memset(mfrReadBuf,0,len);
+        memcpy(mfrReadBuf,param->buffer,param->bufLen);
+       } else {
+        oom_error = 1;
+       }
     }
     IARM_Free(IARM_MEMTYPE_PROCESSLOCAL,param);
-
-    fp_old = dup(1);  // preserve the original stdout
-    if(fp_old == -1) {
-        printf("dup() failed to preserve stdout\n");
-        return -1;
-    }
-    if(freopen ("/dev/null", "w", stdout) == NULL){
-        printf("freopen() failed to redirect stdout\n");
-        close(fp_old);
-        return -1;
-    }
 
     IARM_Bus_Disconnect();
     IARM_Bus_Term();
@@ -162,10 +140,27 @@ int main(int argc, char *argv[])
     if (dup2(fp_old, fileno(stdout)) == -1) {
         printf("dup2() failed to restore stdout\n");
         close(fp_old);
+        if (mfrReadBuf) {
+            free(mfrReadBuf);
+        }
         return -1;
     }
     close(fp_old);
 
+    if (oom_error) {
+        printf("malloc() failed: out of memory\n");
+        return -1;
+    }
+
+    if ( NULL == mfrReadBuf) {
+        printf("Call failed for %s: error code:%d\n", mfr_args_str[paramIndex], ret);
+        return -1;
+    }
+    else {
+        printf("%s\n", mfrReadBuf);
+        free(mfrReadBuf);
+        mfrReadBuf = NULL;
+    }
+
     return 0;
 }
-
