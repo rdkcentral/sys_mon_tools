@@ -544,10 +544,15 @@ IARM_Result_t sendIARMEventPayload(GString* currentEventName, char *eventPayload
              memcpy(firmwareInfo.firmwareNames, strtok(NULL, ":"),CTRLM_DEVICE_UPDATE_PATH_LENGTH);
              g_message("IARM_event_sender entered case for PeripheralUpgradeEvent : %s and %s\r\n",firmwareInfo.firmwareLocation,firmwareInfo.firmwareNames);
 
-             IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME,
+             //coverity fix: CHECKED_RETURN - check return value from IARM_Bus_Call
+             IARM_Result_t ret = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME,
             		 CTRLM_DEVICE_UPDATE_IARM_CALL_UPDATE_AVAILABLE,
                             (void *)&firmwareInfo,
                             sizeof(firmwareInfo));
+             if (ret != IARM_RESULT_SUCCESS)
+             {
+                 g_warning("IARM_Bus_Call failed for PeripheralUpgradeEvent: ret=%d", ret);
+             }
           
         }
         #endif
