@@ -48,7 +48,7 @@ void displayHelp() {
      printf("Usage : mfr_util [CMD] \n");
      printf("CMDs are \n" );
      printf("%5s -> %s \n","--help", "print this help.");
-     printf("%5s -> %s \n","--CurrentImageFilename", "Get current running imagename ");
+     printf("%5s -> %s \n", "Get current running imagename ");
      printf("%5s -> %s \n","--FlashedFilename", "Get current flashed imagename ");
      printf("%5s -> %s \n","--Modelname", "Get Model name");
      printf("%5s -> %s \n","--HardwareId", "Get Hardware ID");
