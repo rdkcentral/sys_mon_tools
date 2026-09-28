@@ -32,7 +32,7 @@ AM_CFLAGS = \
 	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/rdk/iarmmgrs/sysmgr \
 	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/rdk/ds-rpc \
 	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/rdk/halif/ds-hal \
-	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/WPEFramework/powercontroller \
+	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/Thunder/powercontroller \
 	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/directfb \
 	-I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/glib-2.0 \
 	-I$(PKG_CONFIG_SYSROOT_DIR)${libdir}/glib-2.0/include \
@@ -46,10 +46,10 @@ mfr_util_SOURCES = mfr-utils/sys_mfr_utils.c
 mfr_util_LDADD = -lIARMBus
 
 QueryPowerState_SOURCES=iarm_query_powerstate/IARM_Bus_CheckPowerStatus.c
-QueryPowerState_LDADD = $(DIRECT_LIBS) $(FUSION_LIBS) $(GLIB_LIBS) $(DBUS_LIBS) -lWPEFrameworkPowerController
+QueryPowerState_LDADD = $(DIRECT_LIBS) $(FUSION_LIBS) $(GLIB_LIBS) $(DBUS_LIBS) -lThunderPowerController
 
 SetPowerState_SOURCES=iarm_set_powerstate/IARM_BUS_SetPowerStatus.c
-SetPowerState_LDADD = -ldbus-1 -lstdc++ -lpthread -lWPEFrameworkPowerController
+SetPowerState_LDADD = -ldbus-1 -lstdc++ -lpthread -lThunderPowerController
 
 keySimulator_SOURCES=key_simulator/IARM_BUS_UIEventSimulator.c key_simulator/uinput.c
 keySimulator_LDADD = $(GLIB_LIBS) -lIARMBus $(DBUS_LIBS)
@@ -58,4 +58,4 @@ IARM_event_sender_SOURCES = iarm-event-sender/IARM_event_sender.c
 IARM_event_sender_LDADD = $(DIRECT_LIBS) $(FUSION_LIBS) $(GLIB_LIBS) -lIARMBus $(DBUS_LIBS)
 
 pwr_state_monitor_SOURCES = power-state-monitor/powerStateMonitorMain.c
-pwr_state_monitor_LDADD = $(DIRECT_LIBS) $(GLIB_LIBS) -lpthread -lWPEFrameworkPowerController
+pwr_state_monitor_LDADD = $(DIRECT_LIBS) $(GLIB_LIBS) -lpthread -lThunderPowerController
