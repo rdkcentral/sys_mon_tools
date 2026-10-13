@@ -1,0 +1,15 @@
+name: tests-trigger
+
+on:
+  push:
+    branches: [ main, develop, 'sprint/**', 'release/**' ]
+  pull_request:
+    branches: [ main, develop, 'sprint/**', 'release/**', 'topic/RDK*', 'feature/RDK*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  trigger-L1:
+    uses: ./.github/workflows/L1-tests.yml
