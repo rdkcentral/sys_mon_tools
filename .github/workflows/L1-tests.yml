@@ -1,0 +1,47 @@
+name: L1-tests
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  L1-tests:
+    name: Build and run L1 unit tests
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/rdkcentral/docker-rdk-ci:latest
+    steps:
+      - name: Checkout sys_mon_tools
+        uses: actions/checkout@v4
+
+      - name: Prepare RDK build dependencies
+        run: ./build_dependencies.sh
+
+      - name: Install coverage tools
+        run: |
+          apt-get update
+          apt-get install -y lcov
+
+      - name: Build and run L1 tests
+        run: bash ./tests/run_l1_tests.sh
+
+      - name: Generate coverage report
+        if: success()
+        run: |
+          lcov --capture --directory . --output-file coverage.info
+          lcov --remove coverage.info '/usr/*' '*/tests/*' '*/stubs/*' --output-file filtered_coverage.info
+          genhtml filtered_coverage.info --output-directory coverage --title "sys_mon_tools L1 coverage"
+          lcov --summary filtered_coverage.info
+
+      - name: Upload L1 artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-L1-sys_mon_tools
+          path: |
+            coverage/
+            filtered_coverage.info
+            tests/test-suite.log
+          if-no-files-found: warn
