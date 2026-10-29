@@ -48,6 +48,13 @@ PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.24.0])
 PKG_CHECK_MODULES([GTHREAD], [gthread-2.0 >= 2.24.0])
 PKG_CHECK_MODULES([DBUS], [dbus-1])
 
+PKG_CHECK_EXISTS([ThunderPowerController],
+        [THUNDER_NS=Thunder],
+        [PKG_CHECK_EXISTS([WPEFrameworkPowerController],
+                [THUNDER_NS=WPEFramework],
+                [AC_MSG_ERROR([neither ThunderPowerController.pc nor WPEFrameworkPowerController.pc found, check PKG_CONFIG_PATH and PKG_CONFIG_SYSROOT_DIR])])])
+AC_SUBST([THUNDER_NS])
+
 AC_CHECK_LIB(gthread-2.0, g_thread_init)
 
 # Checks for typedefs, structures, and compiler characteristics.
